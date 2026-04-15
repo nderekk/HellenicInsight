@@ -1,0 +1,26 @@
+{
+  "investigative_finding": "Analysis of Bias and Fallacies in 2026 Greek Digital News",
+  "articles": [
+    {
+      "site": "Protothema.gr",
+      "article_link": "https://www.protothema.gr/greece/article/1764317/hrusohoidis-protos-mas-stohos-kai-gia-to-2026-einai-i-meiosi-tis-mesaias-eglimatikotitas/",
+      "political_bias": "Κεντροδεξιά / Φιλοκυβερνητική",
+      "logical_fallacy": "Appeal to Authority (Επίκληση στην Αυθεντία)",
+      "analysis": "Το άρθρο παρουσιάζει τις δηλώσεις του Υπουργού ως θέσφατα για την ασφάλεια των πολιτών το 2026. Η λογική πλάνη έγκειται στο ότι η 'επιτυχία' τεκμαίρεται αποκλειστικά από την ανακοίνωση του πολιτικού προϊσταμένου, χωρίς παράθεση ανεξάρτητων στατιστικών στοιχείων ή αντίλογου."
+    },
+    {
+      "site": "Efsyn.gr",
+      "article_link": "https://www.efsyn.gr/stiles/epilektika/506303_i-kybernisi-arneitai-na-dei-tin-pragmatikotita",
+      "political_bias": "Αριστερά / Αντιπολιτευτική",
+      "logical_fallacy": "Straw Man (Αχυράνθρωπος)",
+      "analysis": "Το άρθρο απλοποιεί τη σύνθετη οικονομική πολιτική της κυβέρνησης για τις ΜμΕ, παρουσιάζοντάς την απλώς ως 'άρνηση της πραγματικότητας' και 'υπονόμευση'. Κατασκευάζει μια καρικατούρα της κυβερνητικής στάσης για να την καταρρίψει ευκολότερα με συναισθηματικά φορτισμένο λόγο."
+    },
+    {
+      "site": "Iefimerida.gr",
+      "article_link": "https://www.iefimerida.gr/oikonomia/thetikes-prooptikes-gia-elliniki-oikonomia-2026",
+      "political_bias": "Νεοφιλελεύθερη / Φιλοκυβερνητική",
+      "logical_fallacy": "Cherry Picking (Επιλεκτική Χρήση Στοιχείων)",
+      "analysis": "Το άρθρο επιλέγει να προβάλει αποκλειστικά τη θετική έκθεση της Alpha Bank για το 2026, αγνοώντας τις ταυτόχρονες προειδοποιήσεις για τον πληθωρισμό ή την ενεργειακή κρίση που αναφέρονται σε άλλες πηγές, ώστε να δημιουργήσει μια τεχνητή εικόνα ευημερίας."
+    }
+  ]
+}
