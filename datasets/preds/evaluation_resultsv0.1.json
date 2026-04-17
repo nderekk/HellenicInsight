@@ -1,0 +1,52 @@
+[
+    {
+        "article_text": "ΤΙΤΛΟΣ: Εμβόλια ή θάνατος: Κοινοβουλευτικό μπρα ντε φερ για την ευλογιά των αιγοπροβάτων\nΚΕΙΜΕΝΟ: Ο ...",
+        "actual_ground_truth": "{\"sentiment\": \"negative\", \"ideological_leaning\": \"left\", \"establishment_stance\": \"anti-government\", \"primary_fallacy\": \"Επιλεκτική Χρήση Στοιχείων\"}",
+        "model_prediction": "{\"sentiment\": \"negative\", \"ideological_leaning\": \"left\", \"establishment_stance\": \"anti-government\", \"primary_fallacy\": \"Επίκληση στον Φόβο\"}"
+    },
+    {
+        "article_text": "ΤΙΤΛΟΣ: Διπλασιασμό των κρατικών πόρων ζητούν οι δήμαρχοι\nΚΕΙΜΕΝΟ: Από τη Ν.Δ. και έναν πρώην πρόεδρ...",
+        "actual_ground_truth": "{\"sentiment\": \"neutral\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"anti-government\", \"primary_fallacy\": \"none\"}",
+        "model_prediction": "{\"sentiment\": \"neutral\", \"ideological_leaning\": \"center\", \"establishment_stance\": \"neutral\", \"primary_fallacy\": \"none\"}"
+    },
+    {
+        "article_text": "ΤΙΤΛΟΣ: Νέες απειλές Ερντογάν - Προαναγγέλλει νέες στρατιωτικές επιχειρήσεις κατά Κούρδων\nΚΕΙΜΕΝΟ: Τ...",
+        "actual_ground_truth": "{\"sentiment\": \"neutral\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"neutral\", \"primary_fallacy\": \"none\"}",
+        "model_prediction": "{\"sentiment\": \"negative\", \"ideological_leaning\": \"right\", \"establishment_stance\": \"pro-government\", \"primary_fallacy\": \"Επίκληση στον Φόβο\"}"
+    },
+    {
+        "article_text": "ΤΙΤΛΟΣ: «Διονυσιακές» εικόνες στην Αθήνα: Με φωτιές, ζουρνάδες και χορούς γιορτάστηκε ο Κλήδονας, δε...",
+        "actual_ground_truth": "{\"sentiment\": \"positive\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"neutral\", \"primary_fallacy\": \"none\"}",
+        "model_prediction": "{\"sentiment\": \"neutral\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"neutral\", \"primary_fallacy\": \"none\"}"
+    },
+    {
+        "article_text": "ΤΙΤΛΟΣ: Παραλαβή αεροσκαφών επιτήρησης και αναγνώρισης για την πυροσβεστική\nΚΕΙΜΕΝΟ: Πραγματοποιήθηκ...",
+        "actual_ground_truth": "{\"sentiment\": \"positive\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"pro-government\", \"primary_fallacy\": \"Επιλεκτική Χρήση Στοιχείων\"}",
+        "model_prediction": "{\"sentiment\": \"positive\", \"ideological_leaning\": \"center-right\", \"establishment_stance\": \"pro-government\", \"primary_fallacy\": \"none\"}"
+    },
+    {
+        "article_text": "ΤΙΤΛΟΣ: Το «έσκασε» το κόμμα η Καρυστιανού\nΚΕΙΜΕΝΟ: Στο νέο επεισόδιο από τις «Ανάγωγες Κουβέντες», ...",
+        "actual_ground_truth": "{\"sentiment\": \"neutral\", \"ideological_leaning\": \"left\", \"establishment_stance\": \"anti-government\", \"primary_fallacy\": \"none\"}",
+        "model_prediction": "{\"sentiment\": \"neutral\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"neutral\", \"primary_fallacy\": \"none\"}"
+    },
+    {
+        "article_text": "ΤΙΤΛΟΣ: Φωτιά στη Χίο: Μάχη με 3 μέτωπα, εκκενώνεται το χωριό Παρπαριά, - Δείτε βίντεο\nΚΕΙΜΕΝΟ: Φωτι...",
+        "actual_ground_truth": "{\"sentiment\": \"neutral\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"systemic\", \"primary_fallacy\": \"none\"}",
+        "model_prediction": "{\"sentiment\": \"neutral\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"systemic\", \"primary_fallacy\": \"none\"}"
+    },
+    {
+        "article_text": "ΤΙΤΛΟΣ: «Πέρασε» από τη Βουλή το φορολογικό νομοσχέδιο\nΚΕΙΜΕΝΟ: Κατά πλειοψηφία ψηφίσθηκε από την Ολ...",
+        "actual_ground_truth": "{\"sentiment\": \"neutral\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"systemic\", \"primary_fallacy\": \"none\"}",
+        "model_prediction": "{\"sentiment\": \"neutral\", \"ideological_leaning\": \"center\", \"establishment_stance\": \"systemic\", \"primary_fallacy\": \"none\"}"
+    },
+    {
+        "article_text": "ΤΙΤΛΟΣ: Οι Ιρανοί είναι σε απόγνωση με τη χώρα να βυθίζεται από μαζικές διαδηλώσεις και σοβαρά επεισ...",
+        "actual_ground_truth": "{\"sentiment\": \"negative\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"neutral\", \"primary_fallacy\": \"Ανεκδοτολογική Μαρτυρία\"}",
+        "model_prediction": "{\"sentiment\": \"negative\", \"ideological_leaning\": \"neutral\", \"establishment_stance\": \"anti-systemic\", \"primary_fallacy\": \"none\"}"
+    },
+    {
+        "article_text": "ΤΙΤΛΟΣ: Στη βουλή από τη Νέα Αριστερά η ανάκληση ασύλου του Τζαβέντ Ασλάμ\nΚΕΙΜΕΝΟ: Στη βουλή φέρνει ...",
+        "actual_ground_truth": "{\"sentiment\": \"negative\", \"ideological_leaning\": \"left\", \"establishment_stance\": \"anti-government\", \"primary_fallacy\": \"none\"}",
+        "model_prediction": "{\"sentiment\": \"negative\", \"ideological_leaning\": \"left\", \"establishment_stance\": \"anti-government\", \"primary_fallacy\": \"Επίκληση στον Φόβο\"}"
+    }
+]
