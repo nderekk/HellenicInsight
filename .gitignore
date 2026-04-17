@@ -3,3 +3,6 @@ Constants.py
 .DS_Store
 /papers
 *.pyc
+*.python-version
+*.env
+temp.py
