@@ -2,10 +2,11 @@ import vertexai
 from vertexai.generative_models import GenerativeModel
 import json
 import time
+import os
 
 # 1. Initialize the Enterprise Connection
 # The SDK automatically finds the credentials you just created in the terminal!
-vertexai.init(project="REMOVED_SECRET", location="europe-west4")
+vertexai.init(project=os.getenv("GOOGLE_CLOUD_PROJECT"), location="europe-west4")
 
 # 2. Your Master Prompt (Insert your Taxonomy from Hour 1 here)
 system_prompt = """
