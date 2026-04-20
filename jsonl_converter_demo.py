@@ -25,7 +25,7 @@ with open('datasets/jsonl_demo.jsonl', 'w', encoding='utf-8') as outfile:
             
             # The standard Instruction-Tuning format
             training_row = {
-                'item': item
+                **item
             }
             
             # Write it as a single line, followed by a newline character
