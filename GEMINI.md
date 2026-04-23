@@ -14,7 +14,7 @@
 ---
 
 ## 🎯 THE MISSION (MVP)
-Build a distributed pipeline that scrapes Greek political news in real-time and uses a custom-trained, locally hosted Large Language Model to output a precise ideological bias score on a continuous scalar.
+Build a distributed pipeline that scrapes Greek political news in real-time and uses a custom-trained, locally hosted Large Language Model to output a precise ideological bias score on a continuous scalar, as well as a reasoning for the choice and some labels.
 * **Scale:** `0.0` (Far-Left) to `1.0` (Far-Right), with `0.5` being Center/Neutral.
 * **Output Constraint:** Strict, parseable JSON (e.g., `{"bias": 0.72}`). No conversational text.
 * **The "HPC Flex" (Our Pitch):** We did not use a massive 72B model or an expensive API. We used Knowledge Distillation to transfer a frontier model's reasoning into a localized 14B/32B model, optimized via LoRA and deployed via vLLM. It processes Greek text 50x faster and 100x cheaper than enterprise baselines.

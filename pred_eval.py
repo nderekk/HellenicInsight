@@ -57,15 +57,13 @@ def calculate_mae(biases1, biases2):
     return mean(errors), len(common_keys)
 
 def main():
-    parser = argparse.ArgumentParser(description="Calculate MAE between two bias labeling sources.")
-    parser.add_argument("file1", help="Path to the first JSON/JSONL file (e.g., Gemini labels)")
-    parser.add_argument("file2", help="Path to the second JSON/JSONL file (e.g., Human/GPT labels)")
-    args = parser.parse_args()
+    file1 = "dataset/reasoning_training/gemini_labels.jsonl"
+    file2 = "dataset/reasoning_training/claude_labels.jsonl"
 
-    print(f"Loading Source 1: {args.file1}...")
-    data1 = load_data(args.file1)
-    print(f"Loading Source 2: {args.file2}...")
-    data2 = load_data(args.file2)
+    print(f"Loading Source 1: {file1}...")
+    data1 = load_data(file1)
+    print(f"Loading Source 2: {file2}...")
+    data2 = load_data(file2)
 
     biases1 = extract_biases(data1)
     biases2 = extract_biases(data2)
@@ -75,29 +73,9 @@ def main():
     print("\n" + "="*40)
     print("🏆 GROUND TRUTH VALIDATION DASHBOARD 🏆")
     print("="*40)
-    print(f"Source A: {args.file1} ({len(biases1)} samples)")
-    print(f"Source B: {args.file2} ({len(biases2)} samples)")
+    print(f"Source A: {file1} ({len(biases1)} samples)")
+    print(f"Source B: {file2} ({len(biases2)} samples)")
     print("-" * 40)
-    
-    if mae is None:
-        print("❌ ERROR: No matching articles found between sources.")
-        print("Ensure 'url' or 'title' fields match exactly.")
-    else:
-        print(f"Matched Articles: {count}")
-        print(f"Mean Absolute Error (MAE): {mae:.4f}")
-        print("-" * 40)
-        
-        # Interpret result based on 0-1 scale
-        if mae < 0.05:
-            print("STATUS: OUTSTANDING. High consensus between sources.")
-        elif mae < 0.12:
-            print("STATUS: GOOD. Minor deviations in bias scoring.")
-        elif mae < 0.20:
-            print("STATUS: ACCEPTABLE. Broad alignment, but lacks precision.")
-        else:
-            print("STATUS: DISCREPANCY. Significant difference in bias perception.")
-    
-    print("="*40 + "\n")
 
 if __name__ == "__main__":
     main()
