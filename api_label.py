@@ -155,7 +155,7 @@ def label_chatgpt(test_articles, output_file='datasets/training/gpt_labels.jsonl
                 )
                 parsed_json = json.loads(response.choices[0].message.content)
                 item_copy = item.copy()
-                item_copy["ai_labels"] = parsed_json
+                item_copy["pred"] = parsed_json
                 save_to_jsonl(item_copy, output_file)
                 print(f"ChatGPT Success: {title[:30]}...")
                 success = True
@@ -169,10 +169,10 @@ if __name__ == "__main__":
         unlabeled_dataset = json.load(f)
     
     # We take the first 20 for this validation task
-    validation_subset = unlabeled_dataset[:20]
+    validation_subset = unlabeled_dataset[4000:4020]
     
     # Run Gemini for the subset as well (into a validation file)
-    # label_gemini(validation_subset, output_file='datasets/training/gemini_labels.jsonl')
+    label_gemini(validation_subset, output_file='datasets/training/2sample.jsonl')
     
     # Run Claude
     # label_claude(validation_subset)

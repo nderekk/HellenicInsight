@@ -62,8 +62,8 @@ def convert_jsonl_to_instruction(input_path, output_path):
     print(f"Conversion complete! {count} examples written to {output_path}")
 
 if __name__ == "__main__":
-    input_file = 'datasets/labeled_dataset.jsonl'
-    output_file = 'datasets/instruction_training_data.jsonl'
+    input_file = 'datasets/training/2sample.jsonl'
+    output_file = 'datasets/training/2instruction_training_data.jsonl'
     
     if os.path.exists(input_file):
         convert_jsonl_to_instruction(input_file, output_file)
