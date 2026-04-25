@@ -7,6 +7,7 @@ const { MongoClient } = require('mongodb');
 const cron = require('node-cron');
 const { spawn } = require('child_process');
 const path = require('path');
+const { url } = require('inspector');
 // --------------------------------
 
 const app = express();
@@ -44,6 +45,8 @@ app.get('/api/articles', async (req, res) => {
             return {
                 title: doc.title || "No Title",
                 source: doc.source || "Unknown Source",
+                url: doc.url || "#",
+                tags: doc.ai_labels?.primary_entities || [],
                 reasoning: doc.ai_labels?.reasoning || "Analysis pending...",
                 polLean: calculatedLean,
                 polScore: percentageScore

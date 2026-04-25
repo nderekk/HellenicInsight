@@ -182,7 +182,26 @@ export default function App() {
                     {activeArticle?.title}
                   </DialogTitle>
                   <DialogDescription className="text-slate-500 mt-1 font-medium flex items-center gap-2">
-                    Source: <span className="text-slate-700">{activeArticle?.source}</span>
+                    Source:
+                      <a 
+                        href={activeArticle?.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline hover:text-blue-800 transition-colors"
+                      >
+                        {activeArticle?.source}
+                      </a>
+                  </DialogDescription>
+                  <DialogDescription className="text-slate-500 mt-1 font-medium flex items-center gap-2"> 
+                    {activeArticle?.tags && activeArticle.tags.length > 0 ? (
+                      activeArticle.tags.map((tag: string, index: number) => (
+                        <Badge key={index} variant="outline" className="text-slate-500 border-slate-200 bg-slate-50">
+                          {tag}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-slate-400">No tags available</span>
+                    )}
                   </DialogDescription>
                 </DialogHeader>
               </div>
