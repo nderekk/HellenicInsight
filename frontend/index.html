@@ -1,73 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Article Viewer</title>
-    <style>
-        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; line-height: 1.6; }
-        .container { max-width: 800px; margin: auto; }
-        .article-card { 
-            background: white; 
-            padding: 20px; 
-            margin-bottom: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-        }
-        h2 { margin-top: 0; color: #333; margin-bottom: 5px; }
-        .meta-info { font-size: 0.85em; color: #666; margin-bottom: 15px; }
-        .meta-info a { color: #0066cc; text-decoration: none; }
-        .meta-info a:hover { text-decoration: underline; }
-        .tags-container { margin-top: 15px; display: flex; gap: 8px; flex-wrap: wrap; }
-        .tag { background: #e0e0e0; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; }
-        .tag-ai { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Demo Articles</h1>
-        <div id="articles-list">Loading articles...</div>
-    </div>
-
-    <script>
-        async function fetchArticles() {
-            try {
-                const response = await fetch('http://127.0.0.1:5000/api/articles');
-                const articles = await response.json();
-                const list = document.getElementById('articles-list');
-                
-                list.innerHTML = articles.map(art => {
-                    // Corrected Date Handling
-                    const pubDate = art.date 
-                        ? new Date(art.date.$date || art.date).toLocaleString('el-GR') 
-                        : 'Unknown Date';
-
-                    const aiTags = art.ai_labels ? `
-                        <span class="tag tag-ai">Sentiment: ${art.ai_labels.sentiment}</span>
-                        <span class="tag tag-ai">Fallacy: ${art.ai_labels.primary_fallacy}</span>
-                    ` : '';
-
-                    return `
-                        <div class="article-card">
-                            <h2>${art.title || 'Untitled'}</h2>
-                            <div class="meta-info">
-                                <span>${pubDate}</span> • 
-                                <a href="${art.url}" target="_blank">Source: ${art.source || 'Unknown'}</a>
-                            </div>
-                            <p>${art.text || 'No content available.'}</p>
-                            <div class="tags-container">
-                                <span class="tag">${art.source || 'General'}</span>
-                                ${aiTags}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (err) {
-                document.getElementById('articles-list').innerText = "Error loading articles.";
-                console.error(err);
-            }
-        }
-        fetchArticles();
-    </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

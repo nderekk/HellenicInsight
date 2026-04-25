@@ -3,6 +3,12 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
 
+// --- NEW SCRAPER DEPENDENCIES ---
+const cron = require('node-cron');
+const { spawn } = require('child_process');
+const path = require('path');
+// --------------------------------
+
 const app = express();
 app.use(cors()); // Allows the frontend to talk to this backend
 
@@ -31,6 +37,54 @@ app.get('/api/articles', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to fetch articles' });
+    }
+});
+
+// ==========================================
+// --- SEQUENTIAL SCRAPER PIPELINE LOGIC ---
+// ==========================================
+
+// Helper function to run a command and wait for it to finish
+function runProcess(command, args, workingDirectory) {
+    return new Promise((resolve, reject) => {
+        const process = spawn(command, args, { cwd: workingDirectory });
+
+        process.stdout.on('data', (data) => console.log(`[Scraper Output]: ${data.toString().trim()}`));
+        process.stderr.on('data', (data) => console.error(`[Scraper Log/Error]: ${data.toString().trim()}`));
+
+        process.on('close', (code) => {
+            if (code === 0) {
+                resolve();
+            } else {
+                reject(new Error(`Process exited with code ${code}`));
+            }
+        });
+    });
+}
+
+// Schedule to run at minute 0 of every hour (e.g., 1:00, 2:00, 3:00)
+cron.schedule('45 * * * *', async () => {
+    console.log('Initiating hourly scraper pipeline...');
+    
+    // Path goes up one level from 'backend' into 'live_scraper'
+    const scraperDir = path.join(__dirname, '../live_scraper');
+
+    try {
+        console.log('Step 1: Running Scrapy Spider...');
+        // Runs: scrapy runspider live_news_spider.py -O raw_news.json
+        await runProcess('scrapy', ['runspider', 'live_news_spider.py', '-O', 'raw_news.json'], scraperDir);
+
+        console.log('Step 2: Running Cleaner...');
+        // Runs: python live_cleaner.py
+        await runProcess('python', ['live_cleaner.py'], scraperDir);
+
+        console.log('Pipeline finished! kafka_feed.jsonl is updated and ready.');
+
+        console.log('Step 3 : Sending to kafka');
+        await runProcess('python',['producer.py'],__dirname);
+        
+    } catch (error) {
+        console.error('Pipeline failed during execution:', error);
     }
 });
 
