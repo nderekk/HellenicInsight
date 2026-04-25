@@ -89,12 +89,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen text-slate-900 p-8 font-sans selection:bg-indigo-100">
+    <div className="min-h-screen text-slate-900 p-8 font-sans selection:bg-red-100">
       
       {/* 1. HERO SECTION */}
       <div className="max-w-3xl mx-auto mt-20 text-center space-y-6">
         <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900">
-          Uncover the Hidden <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">Bias</span>
+          Uncover the Hidden <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-blue-600">Bias</span>
         </h1>
         <p className="text-slate-500 text-lg md:text-xl font-medium">
            Paste an article below or browse the live pipeline feed.
@@ -105,14 +105,14 @@ export default function App() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <Input 
               placeholder="https://example.com/news-article..." 
-              className="bg-white border-slate-300 text-slate-900 h-12 pl-10 text-md shadow-sm focus-visible:ring-indigo-500"
+              className="bg-white border-slate-300 text-slate-900 h-12 pl-10 text-md shadow-sm focus-visible:ring-red-500"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />
           </div>
           <Button 
             onClick={() => handleAnalyze()} 
-            className="h-12 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md transition-all flex items-center gap-2"
+            className="h-12 px-8 bg-slate-900 hover:bg-red-700 text-white font-semibold shadow-md transition-all flex items-center gap-2"
           >
             <Activity className="w-4 h-4" /> Analyze
           </Button>
@@ -124,7 +124,7 @@ export default function App() {
         <div className="flex items-center gap-4 mb-8">
           <div className="h-px bg-slate-200 flex-grow"></div>
           <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
             Live Article Feed
           </h2>
           <div className="h-px bg-slate-200 flex-grow"></div>
@@ -135,14 +135,14 @@ export default function App() {
             liveArticles.map((article, index) => (
               <Card 
                 key={index} 
-                className="bg-white border-slate-200 shadow-sm cursor-pointer hover:border-indigo-300 hover:shadow-md transition-all group"
+                className="bg-white border-slate-200 shadow-sm cursor-pointer hover:border-red-300 hover:shadow-md transition-all group"
                 onClick={() => handleAnalyze(article)}
               >
                 <CardHeader>
                   <Badge variant="outline" className="w-fit mb-3 text-slate-500 border-slate-200 bg-slate-50">
                     {article.source}
                   </Badge>
-                  <CardTitle className="text-slate-800 group-hover:text-indigo-600 transition-colors leading-snug">
+                  <CardTitle className="text-slate-800 group-hover:text-red-600 transition-colors leading-snug">
                     {article.title}
                   </CardTitle>
                 </CardHeader>
@@ -163,7 +163,7 @@ export default function App() {
           
           {isAnalyzing ? (
             <div className="flex-grow flex flex-col items-center justify-center space-y-6 bg-white">
-              <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin"></div>
               <div className="space-y-2 text-center">
                 <p className="text-slate-800 font-bold text-lg animate-pulse">Running Python AI Script...</p>
                 <p className="text-slate-500 font-medium">Orchestrating agent inference</p>
