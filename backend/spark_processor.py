@@ -1,11 +1,13 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, expr, struct, lit, to_timestamp
+from pyspark.sql.functions import from_json, col, expr, struct, lit, to_timestamp,md5
 from pyspark.sql.types import StructType, StructField, StringType, LongType
 
 # Start Spark with Kafka and MongoDB connector packages
 spark = SparkSession.builder \
     .appName("GreekPoliticsClassifier") \
-    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.13:4.1.1,org.mongodb.spark:mongo-spark-connector_2.13:10.3.0") \
+    .config("spark.jars.packages", 
+            "org.apache.spark:spark-sql-kafka-0-10_2.13:4.1.1," + 
+            "org.mongodb.spark:mongo-spark-connector_2.13:11.0.1") \
     .getOrCreate()
     
 spark.sparkContext.setLogLevel("WARN")
@@ -39,33 +41,34 @@ classified_stream = parsed_stream.withColumn(
 )
 
 #Align Schema with Mongoose Model
+# Simplified selection for debugging
 mongodb_stream = classified_stream.select(
-    # Format source as an object
-    struct(
-        lit(None).cast("string").alias("id"), 
-        col("source").alias("name")
-    ).alias("source"),
-    
-    col("url"), # Pass the URL straight through
+    md5(col("url")).alias("_id"), # Generate a unique MongoDB ID
+    col("source"),
+    col("url"),
     col("title"),
-    col("text").alias("content"), # Rename text to content
-    
-    # Convert Unix timestamp to MongoDB Date
-    to_timestamp(col("date") / 1000).alias("date"), 
-    
-    col("political_focus").alias("bias") # Rename political_focus to bias
+    col("text").alias("content"),
+    to_timestamp(expr("CAST(date AS DOUBLE) / 1000")).alias("date"),
+    col("political_focus").alias("bias")
 )
 
 # 7. Output to MongoDB
 # Remember to replace 'your_db_name' with your actual MongoDB database name!
+def write_to_mongo(df, batch_id):
+    if df.count() > 0:
+        df.write \
+            .format("mongodb") \
+            .mode("append") \
+            .option("connection.uri", "mongodb+srv://admin:admin@cluster0.kdfknyi.mongodb.net/") \
+            .option("database", "news_database") \
+            .option("collection", "articles") \
+            .save()
+
+# Use foreachBatch instead of .format("mongodb")
 query = mongodb_stream.writeStream \
-    .format("mongodb") \
-    .option("spark.mongodb.connection.uri", "mongodb://localhost:27017") \
-    .option("spark.mongodb.database", "your_db_name") \
-    .option("spark.mongodb.collection", "articles") \
+    .foreachBatch(write_to_mongo) \
     .option("checkpointLocation", "/tmp/spark_checkpoints/articles_to_mongo") \
-    .outputMode("append") \
     .start()
 
-print("🚀 Spark is listening! Processing and saving directly to MongoDB...")
+print("🚀 Spark is listening! Processing using foreachBatch...")
 query.awaitTermination()
