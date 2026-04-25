@@ -3,74 +3,179 @@ from vertexai.generative_models import GenerativeModel
 import json
 import time
 import os
+import anthropic
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # 1. Initialize the Enterprise Connection
 # The SDK automatically finds the credentials you just created in the terminal!
-vertexai.init(project=os.getenv("GOOGLE_CLOUD_PROJECT"), location="europe-west4")
+if os.getenv("project_key"):
+    vertexai.init(project=os.getenv("project_key"), location="europe-west4")
 
-# 2. Your Master Prompt (Insert your Taxonomy from Hour 1 here)
+# 2. Your Master Prompt
 system_prompt = """
-You are an expert political data scientist analyzing Greek digital media. Read the provided Greek news article and extract the sentiment, ideological leaning, establishment stance, and the primary logical fallacy present (if any).
+You are an expert political data scientist analyzing Greek digital media. Read the provided Greek news article and extract the political ideological leaning of the text on a continuous numerical scale from 0.0 to 1.0.
 
-DEFINITIONS & ALLOWED VALUES:
-- "sentiment": ONLY use "positive", "negative", or "neutral". (Based on the author's tone toward the subject).
-- "ideological_leaning": ONLY use "far-left", "left", "center-left", "center", "center-right", "right", "far-right", or "neutral".
-- "establishment_stance": ONLY use "pro-government", "anti-government", "systemic", "anti-systemic", or "neutral".
-- "primary_fallacy": Choose the ONE most dominant fallacy from this exact list. If none exist, output "none".
-  ALLOWED FALLACIES: ["Επίθεση στο Πρόσωπο", "Επιχείρημα του 'Και για το άλλο;'", "Αχυράνθρωπος", "Ψευδές Δίλημμα", "Ολισθηρή Πλαγιά", "Επίκληση στον Φόβο", "Επιλεκτική Χρήση Στοιχείων", "Επίκληση στην Αυθεντία", "Σφάλμα Αιτιότητας", "Βιαστική Γενίκευση", "Επίκληση στην Πλειοψηφία", "Παγιδευμένη Ερώτηση", "Αντιπερισπασμός", "Κανένας αληθινός...", "Φαύλος Κύκλος", "Ανεκδοτολογική Μαρτυρία", "Επίκληση στην Παράδοση", "Ψευδής Αναλογία", "Επίκληση στην Άγνοια", "Φαινόμενο του Φωτοστέφανου", "none"]
+DEFINITIONS & EXPLICIT ANCHORS:
+- 0.00 to 0.15: Far-Left
+- 0.16 to 0.35: Left
+- 0.36 to 0.45: Center-Left
+- 0.46 to 0.55: Center (or strictly Neutral/Objective reporting)
+- 0.56 to 0.65: Center-Right
+- 0.66 to 0.85: Right
+- 0.86 to 1.00: Far-Right
+
+INSTRUCTIONS:
+Assign a precise decimal value based on the severity of the bias. For example, a moderately right-wing article might be 0.72, while an extreme left-wing article might be 0.05.
 
 STRICT OUTPUT RULES:
-You must respond ONLY with a valid, parsable JSON object. Do NOT include markdown formatting, code blocks (like ```json), explanations, or any trailing text. 
+You must respond ONLY with a valid, parsable JSON object. Do NOT include markdown formatting, code blocks, explanations, or any trailing text. 
 
 EXAMPLE OUTPUT:
-{"sentiment": "negative", "ideological_leaning": "right", "establishment_stance": "anti-government", "primary_fallacy": "Επίκληση στον Φόβο"}
+{"bias": 0.72}
 """
 
-model = GenerativeModel(
-    'gemini-2.5-flash',
-    system_instruction=[system_prompt] # <--- It goes here in Vertex!
-)
+def save_to_jsonl(item, output_file):
+    with open(output_file, 'a', encoding='utf-8') as f:
+        f.write(json.dumps(item, ensure_ascii=False) + '\n')
 
-with open('datasets/final_unlabeled_dataset.json', 'r') as f:
-    unlabeled_dataset = json.load(f)
+def get_processed_titles(output_file):
+    processed_titles = set()
+    if os.path.exists(output_file):
+        with open(output_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                try:
+                    item = json.loads(line)
+                    processed_titles.add(item.get("title"))
+                except json.JSONDecodeError:
+                    continue
+    return processed_titles
+
+def label_gemini(test_articles, output_file='datasets/labeled_dataset.jsonl'):
+    print(f"--- Starting Gemini Labeling -> {output_file} ---")
+    model = GenerativeModel(
+        'gemini-2.5-flash',
+        system_instruction=[system_prompt]
+    )
     
-test_articles = unlabeled_dataset[:50]
+    processed_titles = get_processed_titles(output_file)
+    articles_to_process = [item for item in test_articles if item.get("title") not in processed_titles]
+    print(f"Processing {len(articles_to_process)} new articles.")
 
-# 4. The Distillation Loop
-labeled_dataset = []
+    for i, item in enumerate(articles_to_process, 1):
+        title = item.get("title", "")
+        text = item.get("text", "")
+        article_content = f"ΤΙΤΛΟΣ: {title}\nΚΕΙΜΕΝΟ: {text}"
+        
+        success = False
+        while not success:
+            try:
+                response = model.generate_content(
+                    article_content,
+                    generation_config={
+                        "response_mime_type": "application/json",
+                        "temperature": 0.1
+                    }
+                )
+                parsed_json = json.loads(response.text) 
+                item_copy = item.copy()
+                item_copy["ai_labels"] = parsed_json
+                save_to_jsonl(item_copy, output_file)
+                print(f"Gemini Success: {title[:30]}...")
+                success = True
+                time.sleep(1)
+            except Exception as e:
+                print(f"Gemini Error: {e}")
+                time.sleep(5)
 
-for item in test_articles:
-    title = item.get("title", "")
-    text = item.get("text", "")
-    article_content = f"ΤΙΤΛΟΣ: {title}\nΚΕΙΜΕΝΟ: {text}"
+def label_claude(test_articles, output_file='datasets/training/claude_labels.jsonl'):
+    print(f"--- Starting Claude Labeling -> {output_file} ---")
+    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     
-    success = False
+    processed_titles = get_processed_titles(output_file)
+    articles_to_process = [item for item in test_articles if item.get("title") not in processed_titles]
+    print(f"Processing {len(articles_to_process)} new articles.")
+
+    for i, item in enumerate(articles_to_process, 1):
+        title = item.get("title", "")
+        text = item.get("text", "")
+        
+        success = False
+        while not success:
+            try:
+                message = client.messages.create(
+                    model="claude-sonnet-4-6",
+                    max_tokens=1000,
+                    temperature=0.1,
+                    system=system_prompt,
+                    messages=[
+                        {"role": "user", "content": f"ΤΙΤΛΟΣ: {title}\nΚΕΙΜΕΝΟ: {text}"}
+                    ]
+                )
+                # Anthropic doesn't have native JSON mode in all models via simple flag yet, 
+                # but we asked for it in system prompt.
+                content = message.content[0].text
+                parsed_json = json.loads(content)
+                item_copy = item.copy()
+                item_copy["ai_labels"] = parsed_json
+                save_to_jsonl(item_copy, output_file)
+                print(f"Claude Success: {title[:30]}...")
+                success = True
+                time.sleep(1)
+            except Exception as e:
+                print(f"Claude Error: {e}")
+                time.sleep(5)
+
+def label_chatgpt(test_articles, output_file='datasets/training/gpt_labels.jsonl'):
+    print(f"--- Starting ChatGPT Labeling -> {output_file} ---")
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     
-    # Retry loop: Try up to 3 times for a single article
-    while not success:
-        try:
-            response = model.generate_content(
-                article_content,
-                generation_config={
-                    "response_mime_type": "application/json",
-                    "temperature": 0.1
-                }
-            )
-            
-            parsed_json = json.loads(response.text) 
-            item["ai_labels"] = parsed_json
-            labeled_dataset.append(item)
-            
-            print(f"Success! Labeled: {title[:30]}...")
-            success = True # Breaks the while loop
-            print(f"AI Labels for '{title[:30]}': {parsed_json}")
-            time.sleep(1)  # Increased base sleep to 5 seconds (12 RPM)
-            
-        except Exception as e:
-            print(f"Error: {e}")
-            time.sleep(10) # Simple backoff
+    processed_titles = get_processed_titles(output_file)
+    articles_to_process = [item for item in test_articles if item.get("title") not in processed_titles]
+    print(f"Processing {len(articles_to_process)} new articles.")
 
-with open('datasets/labeled_dataset.json', 'w', encoding='utf-8') as f:
-    json.dump(labeled_dataset, f, ensure_ascii=False, indent=2)
+    for i, item in enumerate(articles_to_process, 1):
+        title = item.get("title", "")
+        text = item.get("text", "")
+        
+        success = False
+        while not success:
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": f"ΤΙΤΛΟΣ: {title}\nΚΕΙΜΕΝΟ: {text}"}
+                    ],
+                    response_format={ "type": "json_object" },
+                    temperature=0.1
+                )
+                parsed_json = json.loads(response.choices[0].message.content)
+                item_copy = item.copy()
+                item_copy["pred"] = parsed_json
+                save_to_jsonl(item_copy, output_file)
+                print(f"ChatGPT Success: {title[:30]}...")
+                success = True
+                time.sleep(1)
+            except Exception as e:
+                print(f"ChatGPT Error: {e}")
+                time.sleep(5)
 
-print("Distillation complete. Dataset saved!")
+if __name__ == "__main__":
+    with open('datasets/final_unlabeled_dataset.json', 'r', encoding='utf-8') as f:
+        unlabeled_dataset = json.load(f)
+    
+    # We take the first 20 for this validation task
+    validation_subset = unlabeled_dataset[4000:4020]
+    
+    # Run Gemini for the subset as well (into a validation file)
+    label_gemini(validation_subset, output_file='datasets/training/2sample.jsonl')
+    
+    # Run Claude
+    # label_claude(validation_subset)
+    
+    # Run ChatGPT
+    # label_chatgpt(validation_subset)

@@ -26,6 +26,9 @@ def populate_db():
         for entry in data:
             if "date" in entry:
                 entry["date"] = datetime.fromtimestamp(entry["date"] / 1000.0)
+                
+        print(data[0])
+        return
 
         result = collection.insert_many(data)
         print(f"Successfully inserted {len(result.inserted_ids)} articles into {db_name}.")

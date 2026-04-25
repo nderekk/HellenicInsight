@@ -1,87 +1,81 @@
 import json
+import argparse
+import sys
 from statistics import mean
 
-with open("datasets/preds/evaluation_resultsv0.1.json", 'r') as f:
-    file = json.load(f)
-  
-scores = {  
-    "sentiment": {
-        'negative': -1,
-        'neutral': 0,
-        'positive': 1
-    },
-    "ideological_leaning": {
-        "far-left": -3,
-        "left": -2,
-        "center-left":-1,
-        "center":0,
-        "center-right":1,
-        "right":2,
-        "far-right":3,
-        "neutral":0
-    },
-    "establishment_stance": {
-        "pro-government":2,
-        "anti-government":-2,
-        "systemic":1,
-        "anti-systemic":-1,
-        "neutral":0,
-    }
-}
-    
-total_errors = []
-fallacy_matches = 0
-valid_predictions = 0
-
-for count, entry in enumerate(file):
+def load_data(path):
+    """Loads data from either a JSON (list) or JSONL file."""
     try:
-        labels = json.loads(entry['actual_ground_truth']) if isinstance(entry['actual_ground_truth'], str) else entry['actual_ground_truth']
-        preds = json.loads(entry['model_prediction']) if isinstance(entry['model_prediction'], str) else entry['model_prediction']
-
-        print(labels)
-        print(preds)
-        
-        temp_err = 0
-        
-        for key in labels.keys():
-            pred_val = preds[key]
-            label_val = labels[key]
-            
-            if key == 'primary_fallacy':
-                is_wrong = (pred_val != label_val)
-                temp_err += is_wrong
-                if not is_wrong:
-                    fallacy_matches += 1
-                # print(f'temp error {count}: ', is_wrong)
-                temp_err += is_wrong
-            else: 
-                pred_num = scores[key].get(pred_val, 5) 
-                label_num = scores[key][label_val]
-                distance = abs(pred_num - label_num)
-                print(f'temp error {count}: ', distance)
-                temp_err += distance
-                
-        total_errors.append(temp_err)
-        valid_predictions += 1
+        with open(path, 'r', encoding='utf-8') as f:
+            content = f.read().strip()
+            if content.startswith('['):
+                return json.loads(content)
+            else:
+                # Assume JSONL
+                return [json.loads(line) for line in content.split('\n') if line.strip()]
     except Exception as e:
-        print(f"Skipping article {count} due to malformed JSON or error: {e}")
-        # Add a massive penalty for crashing
-        total_errors.append(10)
+        print(f"Error loading {path}: {e}")
+        sys.exit(1)
+
+def extract_biases(data):
+    """Maps URL to bias score, handling potential nesting or stringified JSON."""
+    biases = {}
+    for entry in data:
+        # Use URL as primary key, fallback to title
+        key = entry.get('url') or entry.get('title')
+        if not key:
+            continue
+        
+        labels = entry.get('ai_labels', {})
+        # Handle case where ai_labels might be a stringified JSON (from legacy formats)
+        if isinstance(labels, str):
+            try:
+                labels = json.loads(labels)
+            except:
+                continue
+        
+        bias = labels.get('bias')
+        if bias is not None:
+            try:
+                biases[key] = float(bias)
+            except ValueError:
+                continue
+    return biases
+
+def calculate_mae(biases1, biases2):
+    """Calculates Mean Absolute Error between two bias maps."""
+    common_keys = set(biases1.keys()) & set(biases2.keys())
     
-mean_error = mean(total_errors) if total_errors else 0
-fallacy_accuracy = (fallacy_matches / valid_predictions) * 100 if valid_predictions else 0
+    if not common_keys:
+        return None, 0
+    
+    errors = []
+    for key in common_keys:
+        err = abs(biases1[key] - biases2[key])
+        errors.append(err)
+    
+    return mean(errors), len(common_keys)
 
-print("=======================================")
-print("🏆 PIPELINE EVALUATION DASHBOARD 🏆")
-print("=======================================")
-print(f"Articles Evaluated: {valid_predictions} / {len(file)}")
-print(f"Mean Absolute Error (Distance): {mean_error:.2f} points per article")
-print(f"Exact Fallacy Match Accuracy: {fallacy_accuracy:.1f}%")
-print("=======================================")
+def main():
+    file1 = "dataset/reasoning_training/gemini_labels.jsonl"
+    file2 = "dataset/reasoning_training/claude_labels.jsonl"
 
-if mean_error < 1.5:
-    print("STATUS: OUTSTANDING. Model is highly calibrated to ground truth.")
-elif mean_error < 3.0:
-    print("STATUS: GOOD. Model understands the scale but misses nuance.")
-else:
-    print("STATUS: NEEDS WORK. High deviation or frequent JSON hallucinations.")
+    print(f"Loading Source 1: {file1}...")
+    data1 = load_data(file1)
+    print(f"Loading Source 2: {file2}...")
+    data2 = load_data(file2)
+
+    biases1 = extract_biases(data1)
+    biases2 = extract_biases(data2)
+
+    mae, count = calculate_mae(biases1, biases2)
+
+    print("\n" + "="*40)
+    print("🏆 GROUND TRUTH VALIDATION DASHBOARD 🏆")
+    print("="*40)
+    print(f"Source A: {file1} ({len(biases1)} samples)")
+    print(f"Source B: {file2} ({len(biases2)} samples)")
+    print("-" * 40)
+
+if __name__ == "__main__":
+    main()

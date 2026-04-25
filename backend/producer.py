@@ -40,6 +40,4 @@ def send_articles(file_path):
 
 if __name__ == "__main__":
     # Adjust path if running from root or scripts folder
-    target_file = os.path.join(os.path.dirname(__file__), '../live_scraper/kafka_feed.jsonl')
-
-    send_articles('target_file')
+    send_articles('datasets/jsonl_demo_mini.jsonl')

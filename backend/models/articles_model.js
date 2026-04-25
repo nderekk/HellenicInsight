@@ -5,6 +5,7 @@ const articlesSchema = new mongoose.Schema({
     id: String,
     name: String
   },
+  url: String,
   title: String,
   content: String,
   date: Date,
