@@ -17,25 +17,41 @@ if os.getenv("project_key"):
 
 # 2. Your Master Prompt
 system_prompt = """
-You are an expert political data scientist analyzing Greek digital media. Read the provided Greek news article and extract the political ideological leaning of the text on a continuous numerical scale from 0.0 to 1.0.
+You are an expert Political Data Scientist and Computational Linguist specializing in Greek digital media and political discourse. Your task is to perform a deep-structure ideological analysis of Greek news articles.
 
-DEFINITIONS & EXPLICIT ANCHORS:
-- 0.00 to 0.15: Far-Left
-- 0.16 to 0.35: Left
-- 0.36 to 0.45: Center-Left
-- 0.46 to 0.55: Center (or strictly Neutral/Objective reporting)
-- 0.56 to 0.65: Center-Right
-- 0.66 to 0.85: Right
-- 0.86 to 1.00: Far-Right
+TASK:
+1. Analyze the provided Greek news article for political bias, framing, and ideological stance.
+2. Provide a concise reasoning in Greek (2-4 sentences) justifying the analysis.
+3. Extract 1-3 primary political entities (politicians, parties, institutions) targeted or discussed in the text.
+4. Assign a precise ideological leaning score on a continuous scale from 0.0 to 1.0.
 
-INSTRUCTIONS:
-Assign a precise decimal value based on the severity of the bias. For example, a moderately right-wing article might be 0.72, while an extreme left-wing article might be 0.05.
+IDEOLOGICAL ANCHORS (Left vs Right & Populism vs Institutionalism):
+- 0.00 - 0.15: Far-Left (Radical systemic critique, anti-capitalist, anti-establishment/populist framing)
+- 0.16 - 0.35: Left (Socialist/Progressive focus, labor rights, strong state intervention)
+- 0.36 - 0.45: Center-Left (Social democratic leaning, moderate reformism, pro-EU)
+- 0.46 - 0.55: Center / Neutral (Strictly objective reporting, institutionalist, multi-perspective balance)
+- 0.56 - 0.65: Center-Right (Liberal-conservative, market-oriented, institutionalist/pro-EU)
+- 0.66 - 0.85: Right (Conservative, national focus, law and order, pro-business)
+- 0.86 - 1.00: Far-Right (Ultra-nationalist, nativist framing, reactionary/anti-systemic rhetoric)
 
-STRICT OUTPUT RULES:
-You must respond ONLY with a valid, parsable JSON object. Do NOT include markdown formatting, code blocks, explanations, or any trailing text. 
+REASONING GUIDELINES (Greek):
+Your reasoning must identify:
+- Lexical choices (e.g., use of "λαϊκισμός", "δικαιωματισμός", "καθεστώς", "ελίτ").
+- Framing of political actors (who is portrayed as the protagonist/antagonist?).
+- Source selection (whose views are prioritized or omitted?).
+
+STRICT OUTPUT FORMAT:
+Return ONLY a valid JSON object. Do not include markdown code blocks, headers, or any text before/after the JSON. 
+
+JSON SCHEMA:
+{
+  "reasoning": "string (in Greek, 2-4 sentences)",
+  "primary_entities": ["string", "string"],
+  "bias": float (0.00 to 1.00)
+}
 
 EXAMPLE OUTPUT:
-{"bias": 0.72}
+{"reasoning": "Το άρθρο χρησιμοποιεί έντονα φορτισμένους όρους όπως 'νεοφιλελεύθερη λαίλαπα' και εστιάζει αποκλειστικά σε ανακοινώσεις συνδικάτων χωρίς να παραθέτει την κυβερνητική θέση, γεγονός που υποδηλώνει σαφή αριστερή/αντισυστημική απόκλιση.", "primary_entities": ["Κυβέρνηση", "ΓΣΕΕ"], "bias": 0.18}
 """
 
 def save_to_jsonl(item, output_file):
@@ -169,13 +185,13 @@ if __name__ == "__main__":
         unlabeled_dataset = json.load(f)
     
     # We take the first 20 for this validation task
-    validation_subset = unlabeled_dataset[4000:4020]
+    # validation_subset = unlabeled_dataset[:3000]
     
     # Run Gemini for the subset as well (into a validation file)
-    label_gemini(validation_subset, output_file='datasets/training/2sample.jsonl')
+    label_gemini(validation_subset, output_file='datasets/training/200sample.jsonl')
     
     # Run Claude
-    # label_claude(validation_subset)
+    # label_claude(validation_subset, output_file='datasets/training/500sample.jsonl')
     
     # Run ChatGPT
     # label_chatgpt(validation_subset)
