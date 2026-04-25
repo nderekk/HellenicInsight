@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -7,50 +7,69 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { ShieldCheck, BrainCircuit, Activity, Scale, Search, FileText } from "lucide-react"
 
-// Upgraded data to match your Python Pipeline (Political + Economic experts)
-const scrapedArticles = [
-  { 
-    id: 1, 
-    title: "New Economic Policy Sparks Debate", 
-    source: "The Daily Post", 
-    polLean: "Center", polScore: 50, 
-    reasoning: "The article presents a balanced view on the political spectrum, but heavily favors state-interventionist economic policies. It cites historical successes of regulation without addressing market-driven counterarguments." 
-  },
-  { 
-    id: 2, 
-    title: "Tech Giants Face Stricter Regulations", 
-    source: "Tech Insider", 
-    polLean: "Left", polScore: 20, 
-    reasoning: "Strong reliance on progressive talking points regarding corporate monopolies. However, it provides equal weight to both capitalist innovation and socialist regulatory frameworks." 
-  },
-  { 
-    id: 3, 
-    title: "Markets Rally After Tax Cuts", 
-    source: "Market Watch", 
-    polLean: "Right", polScore: 85, 
-    reasoning: "Omits negative economic forecasts and heavily utilizes emotive language to praise supply-side economic theories. Demonstrates clear alignment with conservative fiscal policies." 
-  },
-]
-
 export default function App() {
   const [url, setUrl] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeArticle, setActiveArticle] = useState<any>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  
+  // NEW: State to hold your live MongoDB feed
+  const [liveArticles, setLiveArticles] = useState<any[]>([])
 
-  const handleAnalyze = (articleData?: any) => {
+  // NEW: Fetch the live feed when the page loads
+  useEffect(() => {
+    const fetchLiveFeed = async () => {
+      try {
+        const response = await fetch('/api/articles')
+        if (response.ok) {
+          const data = await response.json()
+          setLiveArticles(data)
+        }
+      } catch (error) {
+        console.error("Failed to fetch live feed:", error)
+      }
+    }
+
+    fetchLiveFeed()
+    // Refresh the feed every 10 seconds automatically!
+    const interval = setInterval(fetchLiveFeed, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // UPGRADED: Send URL to Python Script
+  const handleAnalyze = async (existingArticle?: any) => {
     setIsAnalyzing(true)
     setIsModalOpen(true)
     
-    setTimeout(() => {
-      setActiveArticle(articleData || { 
-        title: "Custom URL Analysis: Policy Review", 
-        source: "External URL",
-        polLean: "Right", polScore: 80, 
-        reasoning: "The article uses highly emotive language and omits counter-arguments regarding the recent policy changes. Strong free-market economic lean detected by the agent." 
-      })
+    // If they clicked a card from the feed, show that data instantly
+    if (existingArticle) {
+      setActiveArticle(existingArticle)
       setIsAnalyzing(false)
-    }, 1500)
+      return
+    }
+
+    // If they pasted a URL, send it to Python!
+    if (url) {
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        })
+        
+        if (response.ok) {
+          const aiResult = await response.json()
+          setActiveArticle(aiResult)
+        } else {
+          setActiveArticle({ title: "Analysis Failed", reasoning: "Could not reach the Qwen AI agents." })
+        }
+      } catch (error) {
+        console.error("Backend error:", error)
+        setActiveArticle({ title: "System Error", reasoning: "Pipeline connection failed." })
+      } finally {
+        setIsAnalyzing(false)
+      }
+    }
   }
 
   return (
@@ -88,48 +107,53 @@ export default function App() {
         </div>
       </div>
 
-      {/* 2. LIVE FEED GRID */}
+      {/* 2. LIVE FEED GRID (Now maps over liveArticles!) */}
       <div className="max-w-5xl mx-auto mt-32">
         <div className="flex items-center gap-4 mb-8">
           <div className="h-px bg-slate-200 flex-grow"></div>
           <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            Live Kafka Feed
+            Live Database Feed
           </h2>
           <div className="h-px bg-slate-200 flex-grow"></div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {scrapedArticles.map((article) => (
-            <Card 
-              key={article.id} 
-              className="bg-white border-slate-200 shadow-sm cursor-pointer hover:border-indigo-300 hover:shadow-md transition-all group"
-              onClick={() => handleAnalyze(article)}
-            >
-              <CardHeader>
-                <Badge variant="outline" className="w-fit mb-3 text-slate-500 border-slate-200 bg-slate-50">
-                  {article.source}
-                </Badge>
-                <CardTitle className="text-slate-800 group-hover:text-indigo-600 transition-colors leading-snug">
-                  {article.title}
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          ))}
+          {liveArticles.length > 0 ? (
+            liveArticles.map((article, index) => (
+              <Card 
+                key={index} 
+                className="bg-white border-slate-200 shadow-sm cursor-pointer hover:border-indigo-300 hover:shadow-md transition-all group"
+                onClick={() => handleAnalyze(article)}
+              >
+                <CardHeader>
+                  <Badge variant="outline" className="w-fit mb-3 text-slate-500 border-slate-200 bg-slate-50">
+                    {article.source}
+                  </Badge>
+                  <CardTitle className="text-slate-800 group-hover:text-indigo-600 transition-colors leading-snug">
+                    {article.title}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+            ))
+          ) : (
+             <div className="col-span-3 text-center py-10 text-slate-500">
+               Waiting for Spark pipeline to insert documents into MongoDB...
+             </div>
+          )}
         </div>
       </div>
 
-      {/* 3. THE UPGRADED PROFESSIONAL DASHBOARD MODAL */}
+      {/* 3. THE DASHBOARD MODAL */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        {/* Notice the sm:max-w-3xl below - this makes it beautifully wide */}
         <DialogContent className="bg-slate-50 border-slate-200 text-slate-900 sm:max-w-3xl shadow-2xl overflow-hidden p-0">
           
           {isAnalyzing ? (
             <div className="py-32 flex flex-col items-center justify-center space-y-6 bg-white">
               <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
               <div className="space-y-2 text-center">
-                <p className="text-slate-800 font-bold text-lg animate-pulse">Orchestrating Expert Agents...</p>
-                <p className="text-slate-500 font-medium">Parsing Strict JSON Output via Qwen</p>
+                <p className="text-slate-800 font-bold text-lg animate-pulse">Running Python AI Script...</p>
+                <p className="text-slate-500 font-medium">Please wait for Qwen inference to complete</p>
               </div>
             </div>
           ) : (
@@ -152,8 +176,6 @@ export default function App() {
               
               {/* Modal Body - Two Column Grid */}
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50">
-                
-                {/* Column 1: The Metrics */}
                 <div className="space-y-6">
                   {/* Political Meter */}
                   <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
@@ -180,7 +202,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Column 2: Reasoning Log */}
+                {/* Reasoning Log */}
                 <Card className="bg-white border-slate-200 shadow-sm h-full flex flex-col">
                   <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50/50">
                     <CardTitle className="text-xs text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
@@ -192,7 +214,6 @@ export default function App() {
                     {activeArticle?.reasoning}
                   </CardContent>
                 </Card>
-
               </div>
             </>
           )}
