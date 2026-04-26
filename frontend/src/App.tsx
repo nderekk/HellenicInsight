@@ -94,7 +94,7 @@ export default function App() {
       {/* 1. HERO SECTION */}
       <div className="max-w-3xl mx-auto mt-20 text-center space-y-6">
         <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900">
-          Uncover the Hidden <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-blue-600">Bias</span>
+          Hellenic <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-blue-600">Insight</span>
         </h1>
         <p className="text-slate-500 text-lg md:text-xl font-medium">
            Paste an article below or browse the live pipeline feed.
@@ -140,9 +140,14 @@ export default function App() {
               >
                 <CardHeader>
                   <div className="flex justify-between items-center mb-3">
-                    <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50">
-                      {article.source}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50">
+                        {article.source}
+                      </Badge>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        {article.date}
+                      </span>
+                    </div>
                     {/* Subtle Mini Meter */}
                     <div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden opacity-60 group-hover:opacity-100 transition-opacity">
                       <div 
@@ -200,6 +205,8 @@ export default function App() {
                       >
                         {activeArticle?.source}
                       </a>
+                      <span className="text-slate-300 mx-1">•</span>
+                      <span className="text-slate-400 text-xs">{activeArticle?.date}</span>
                   </DialogDescription>
                   <DialogDescription className="text-slate-500 mt-1 font-medium flex items-center gap-2"> 
                     {activeArticle?.tags && activeArticle.tags.length > 0 ? (
