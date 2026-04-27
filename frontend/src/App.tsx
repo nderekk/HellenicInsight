@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 // NEW: Imported 'Orbit' for the clean vector logo symbol
-import { ShieldCheck, BrainCircuit, Activity, Scale, Search, FileText, Orbit } from "lucide-react"
+import { ShieldCheck, Activity, Scale, Search, FileText, Orbit } from "lucide-react"
 
 const getPolLeanBadgeColor = (lean: string) => {
   switch (lean) {
