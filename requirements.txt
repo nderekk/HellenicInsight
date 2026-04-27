@@ -3,3 +3,4 @@ confluent-kafka
 flask
 flask-cors
 pymongo
+python-dotenv
