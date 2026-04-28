@@ -40,4 +40,4 @@ def send_articles(file_path):
 
 if __name__ == "__main__":
     # Adjust path if running from root or scripts folder
-    send_articles('datasets/demo.jsonl')
+    send_articles('../datasets/jsonl_demo_mini.jsonl')
