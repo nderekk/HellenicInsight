@@ -263,7 +263,7 @@ export default function App() {
                       Agent Reasoning Log
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-4 text-slate-700 text-sm leading-relaxed font-medium flex-grow">
+                  <CardContent className="pt-4 text-slate-700 text-sm leading-relaxed font-medium flex-grow overflow-y-auto">
                     {activeArticle?.reasoning}
                   </CardContent>
                 </Card>
