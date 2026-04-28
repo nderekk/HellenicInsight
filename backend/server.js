@@ -5,13 +5,17 @@ const { MongoClient } = require('mongodb');
 
 // --- NEW SCRAPER DEPENDENCIES ---
 const cron = require('node-cron');
-const { spawn } = require('child_process');
+// Notice I added 'exec' here so we can run the Fast Lane script!
+const { spawn, exec } = require('child_process'); 
 const path = require('path');
 const { url } = require('inspector');
 // --------------------------------
 
 const app = express();
-app.use(cors()); // Allows the frontend to talk to this backend
+
+// --- CRITICAL FIX: Added express.json() so Node can read React's POST data ---
+app.use(cors()); 
+app.use(express.json()); 
 
 const uri = process.env.MONGO_URI;
 const dbName = process.env.DB_NAME;
@@ -30,6 +34,10 @@ MongoClient.connect(uri)
         console.error('Failed to connect to MongoDB', error);
     });
 
+
+// ==========================================
+// --- ROUTE 1: THE LIVE FEED (BACKGROUND) --
+// ==========================================
 app.get('/api/articles', async (req, res) => {
     try {
         const rawArticles = await collection.find({}, { projection: { _id: 0 } }).toArray();
@@ -50,7 +58,6 @@ app.get('/api/articles', async (req, res) => {
                 reasoning: doc.ai_labels?.reasoning || "Analysis pending...",
                 polLean: calculatedLean,
                 polScore: percentageScore
-                // econLean and econScore have been completely removed!
             };
         });
 
@@ -64,41 +71,68 @@ app.get('/api/articles', async (req, res) => {
 
 
 // ==========================================
+// --- ROUTE 2: THE VIP FAST LANE (ANALYZE) -
+// ==========================================
+app.post('/api/analyze', (req, res) => {
+    const targetUrl = req.body.url;
+
+    if (!targetUrl) {
+        return res.status(400).json({ error: "URL is required" });
+    }
+
+    console.log(`[Fast Lane] React requested analysis for: ${targetUrl}`);
+    console.log(`[Fast Lane] Booting up Crawl4AI & Qwen...`);
+    
+    exec(`python qwen_analyzer.py "${targetUrl}"`, { cwd: __dirname }, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`[Fast Lane Error]: ${error.message}`);
+            return res.status(500).json({ error: 'AI processing failed' });
+        }
+        
+        try {
+            const jsonStartIndex = stdout.indexOf('{');
+            if (jsonStartIndex === -1) throw new Error("No JSON found in Python output");
+            
+            const cleanJsonString = stdout.substring(jsonStartIndex);
+            const aiResult = JSON.parse(cleanJsonString);
+            
+            console.log(`[Fast Lane] Success! Sending data back to React.`);
+            // Send the perfectly formatted data back to your dashboard!
+            res.json(aiResult);
+
+        } catch (parseError) {
+            console.error('[Fast Lane Error] Failed to parse Python output. Python printed:', stdout);
+            res.status(500).json({ error: 'Invalid data format returned from AI' });
+        }
+    });
+});
+
+
+// ==========================================
 // --- SEQUENTIAL SCRAPER PIPELINE LOGIC ---
 // ==========================================
 
-// Helper function to run a command and wait for it to finish
 function runProcess(command, args, workingDirectory) {
     return new Promise((resolve, reject) => {
         const process = spawn(command, args, { cwd: workingDirectory });
-
         process.stdout.on('data', (data) => console.log(`[Scraper Output]: ${data.toString().trim()}`));
         process.stderr.on('data', (data) => console.error(`[Scraper Log/Error]: ${data.toString().trim()}`));
-
         process.on('close', (code) => {
-            if (code === 0) {
-                resolve();
-            } else {
-                reject(new Error(`Process exited with code ${code}`));
-            }
+            if (code === 0) resolve();
+            else reject(new Error(`Process exited with code ${code}`));
         });
     });
 }
 
-// Schedule to run at minute 0 of every hour (e.g., 1:00, 2:00, 3:00)
 cron.schedule('45 * * * *', async () => {
     console.log('Initiating hourly scraper pipeline...');
-    
-    // Path goes up one level from 'backend' into 'live_scraper'
     const scraperDir = path.join(__dirname, '../live_scraper');
 
     try {
         console.log('Step 1: Running Scrapy Spider...');
-        // Runs: scrapy runspider live_news_spider.py -O raw_news.json
         await runProcess('scrapy', ['runspider', 'live_news_spider.py', '-O', 'raw_news.json'], scraperDir);
 
         console.log('Step 2: Running Cleaner...');
-        // Runs: python live_cleaner.py
         await runProcess('python', ['live_cleaner.py'], scraperDir);
 
         console.log('Pipeline finished! kafka_feed.jsonl is updated and ready.');
