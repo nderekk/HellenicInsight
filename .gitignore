@@ -8,3 +8,4 @@ Constants.py
 temp.py
 raw_news.json
 node_modules
+*.venv
