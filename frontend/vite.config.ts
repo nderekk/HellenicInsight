@@ -12,9 +12,14 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5001', // Points to your Node.js backend
+        target: 'http://localhost:5001',
         changeOrigin: true,
-      }
+      },
+      '/vllm-metrics': {
+        target: 'http://10.184.94.22:30069',
+        changeOrigin: true,
+        rewrite: () => '/metrics',
+      },
     }
   }
 })

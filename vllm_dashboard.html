@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VLLM INFERENCE MONITOR</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+  <style>
+    :root {
+      --bg-body:        #0a0e14;
+      --bg-panel:       #0d1117;
+      --bg-card:        #161b22;
+      --border:         #21262d;
+      --text-primary:   #c9d1d9;
+      --text-dim:       #8b949e;
+      --color-running:  #00bcd4;
+      --color-waiting:  #ff9800;
+      --color-finished: #42a5f5;
+      --accent:         #00bcd4;
+      --glow-faint:     rgba(0,188,212,0.12);
+      --glow-mid:       rgba(0,188,212,0.40);
+      --color-error:    #f44336;
+      --bg-error:       rgba(244,67,54,0.08);
+      --font-mono:      'Courier New', Courier, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-body);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 36px 24px 48px;
+      gap: 0;
+    }
+
+    /* ── Title ─────────────────────────────────────────────── */
+    @keyframes title-glow {
+      0%,100% {
+        text-shadow: 0 0 6px var(--glow-mid), 0 0 14px var(--glow-faint);
+        opacity: 1;
+      }
+      50% {
+        text-shadow: 0 0 22px var(--accent), 0 0 44px var(--glow-mid), 0 0 3px var(--glow-faint);
+        opacity: 0.82;
+      }
+    }
+
+    #title {
+      font-size: 1.3rem;
+      letter-spacing: 0.38em;
+      color: var(--accent);
+      text-transform: uppercase;
+      animation: title-glow 2.8s ease-in-out infinite;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    #subtitle {
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      color: var(--text-dim);
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    /* ── Eye container ─────────────────────────────────────── */
+    #eye-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 28px 18px;
+      position: relative;
+    }
+
+    #eye-svg { display: block; overflow: visible; }
+
+    /* ── Dot animations ────────────────────────────────────── */
+    @keyframes dot-pulse-run {
+      0%,100% { opacity: 0.70; r: 3.2; }
+      50%      { opacity: 1.00; r: 4.4; }
+    }
+    @keyframes dot-pulse-wait {
+      0%,100% { opacity: 0.65; r: 3.0; }
+      50%      { opacity: 0.95; r: 4.0; }
+    }
+
+    circle.dot-running {
+      animation: dot-pulse-run 1.6s ease-in-out infinite;
+    }
+    circle.dot-waiting {
+      animation: dot-pulse-wait 2.4s ease-in-out infinite;
+      animation-delay: 0.5s;
+    }
+    circle.dot-finished { /* static */ }
+
+    /* ── Legend ────────────────────────────────────────────── */
+    #legend {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 14px;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* ── Stats bar ─────────────────────────────────────────── */
+    #stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 18px;
+      text-align: center;
+      min-width: 108px;
+    }
+    .stat-label {
+      font-size: 0.58rem;
+      color: var(--text-dim);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .stat-value {
+      font-size: 1.55rem;
+      margin-top: 5px;
+      line-height: 1;
+    }
+    .stat-total    { color: var(--text-primary); }
+    .stat-running  { color: var(--color-running); }
+    .stat-waiting  { color: var(--color-waiting); }
+    .stat-gpu      { color: var(--color-finished); }
+
+    /* ── Progress bar ──────────────────────────────────────── */
+    #progress-container {
+      width: 660px;
+      max-width: 100%;
+      margin-top: 22px;
+    }
+    #progress-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-align: center;
+      margin-bottom: 7px;
+    }
+    #progress-track {
+      height: 3px;
+      background: var(--bg-card);
+      border-radius: 2px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.09s linear;
+      box-shadow: 0 0 8px var(--glow-mid);
+    }
+
+    /* ── Error box ─────────────────────────────────────────── */
+    #error-box {
+      display: none;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 12px 18px;
+      background: var(--bg-error);
+      border: 1px solid var(--color-error);
+      border-radius: 6px;
+      color: var(--color-error);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      width: 660px;
+      max-width: 100%;
+    }
+    #error-icon {
+      font-size: 1.1rem;
+      font-weight: bold;
+      flex-shrink: 0;
+      line-height: 1.2;
+    }
+    #error-text { line-height: 1.5; }
+
+    /* ── Server info ───────────────────────────────────────── */
+    #server-info {
+      margin-top: 20px;
+      font-size: 0.58rem;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="title">VLLM INFERENCE MONITOR</div>
+  <div id="subtitle">GREEK NEWS POLITICAL BIAS LABELING · MODEL /bigono/kirkir</div>
+
+  <div id="eye-container">
+    <svg id="eye-svg" viewBox="0 0 660 400" width="660" height="400">
+      <defs>
+        <clipPath id="eye-clip">
+          <!-- Vesica piscis almond shape: two 273-radius arcs, eye spans (130,200)→(530,200) -->
+          <path d="M 130,200 A 273,273 0 0,1 530,200 A 273,273 0 0,1 130,200 Z"/>
+        </clipPath>
+        <!-- Subtle radial glow behind the eye -->
+        <radialGradient id="eye-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#00bcd4" stop-opacity="0.06"/>
+          <stop offset="100%" stop-color="#00bcd4" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Glow background -->
+      <ellipse cx="330" cy="200" rx="210" ry="110" fill="url(#eye-glow)"/>
+
+      <!-- Eye outline (decorative) -->
+      <path id="eye-outline"
+            d="M 130,200 A 273,273 0 0,1 530,200 A 273,273 0 0,1 130,200 Z"
+            fill="none" stroke="#1f2a33" stroke-width="1.5"/>
+
+      <!-- Dots clipped to eye shape -->
+      <g id="dots" clip-path="url(#eye-clip)"></g>
+
+      <!-- Iris ring overlay (cosmetic) -->
+      <circle cx="330" cy="200" r="56" fill="none" stroke="#0d1117" stroke-width="1" opacity="0.4"/>
+      <circle cx="330" cy="200" r="30" fill="#0d1117" opacity="0.55"/>
+      <circle cx="330" cy="200" r="8"  fill="#00bcd4" opacity="0.18"/>
+    </svg>
+
+    <div id="legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#42a5f5"></div>
+        COMPLETED
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#ff9800"></div>
+        WAITING
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#00bcd4"></div>
+        RUNNING
+      </div>
+    </div>
+  </div>
+
+  <div id="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">TOTAL REQ</div>
+      <div class="stat-value stat-total" id="stat-total">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">RUNNING</div>
+      <div class="stat-value stat-running" id="stat-running">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">WAITING</div>
+      <div class="stat-value stat-waiting" id="stat-waiting">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">GPU CACHE</div>
+      <div class="stat-value stat-gpu" id="stat-gpu">—</div>
+    </div>
+  </div>
+
+  <div id="progress-container">
+    <div id="progress-label">INITIALIZING…</div>
+    <div id="progress-track">
+      <div id="progress-fill"></div>
+    </div>
+  </div>
+
+  <div id="error-box">
+    <span id="error-icon">!</span>
+    <span id="error-text">METRICS ENDPOINT UNREACHABLE</span>
+  </div>
+
+  <div id="server-info"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  CONFIG — edit these values to match your environment
+// ═══════════════════════════════════════════════════════════════════
+const CONFIG = {
+  SERVER_HOST:      '10.184.94.22',
+  SERVER_PORT:      30068,
+  METRICS_PATH:     '/metrics',
+  REFRESH_INTERVAL: 5000,   // ms
+  MAX_DOTS:         500,
+  USE_PROXY:        false,
+  PROXY_URL:        'http://localhost:5001/metrics',
+};
+
+// ═══════════════════════════════════════════════════════════════════
+//  Eye geometry constants (match the SVG path above)
+// ═══════════════════════════════════════════════════════════════════
+const EYE = {
+  CX: 330,   // eye center x
+  CY: 200,   // eye center y
+  W:  400,   // total width  (left tip = CX-W/2 = 130, right tip = CX+W/2 = 530)
+  R:  273,   // arc radius — matches the SVG path A rx value
+};
+// d_offset = distance from eye center to each arc center = sqrt(R² - (W/2)²)
+EYE.D_OFFSET  = Math.sqrt(EYE.R * EYE.R - (EYE.W / 2) * (EYE.W / 2));  // ≈185.8
+EYE.UPPER_CY  = EYE.CY + EYE.D_OFFSET;   // ≈385.8
+EYE.LOWER_CY  = EYE.CY - EYE.D_OFFSET;   // ≈14.2
+EYE.H         = 2 * (EYE.R - EYE.D_OFFSET);  // ≈174.3 (derived height)
+
+const DOT_RADIUS  = 3.5;
+const DOT_SPACING = 10;    // px grid spacing
+
+// ═══════════════════════════════════════════════════════════════════
+//  Pre-compute dot positions inside the eye shape
+// ═══════════════════════════════════════════════════════════════════
+function isInsideEye(px, py) {
+  const r2 = EYE.R * EYE.R;
+  const upper = (px - EYE.CX) ** 2 + (py - EYE.UPPER_CY) ** 2 <= r2;
+  const lower = (px - EYE.CX) ** 2 + (py - EYE.LOWER_CY) ** 2 <= r2;
+  return upper && lower;
+}
+
+const DOT_POSITIONS = (function precompute() {
+  const positions = [];
+  const left = EYE.CX - EYE.W / 2;
+  const top  = EYE.CY - EYE.H / 2;
+  const cols = Math.ceil(EYE.W / DOT_SPACING) + 2;
+  const rows = Math.ceil(EYE.H / DOT_SPACING) + 2;
+
+  for (let r = 0; r <= rows; r++) {
+    for (let c = 0; c <= cols; c++) {
+      const px = left + c * DOT_SPACING;
+      const py = top  + r * DOT_SPACING;
+      if (isInsideEye(px, py)) positions.push([px, py]);
+    }
+  }
+  return positions.slice(0, CONFIG.MAX_DOTS);
+})();
+
+// ═══════════════════════════════════════════════════════════════════
+//  Prometheus text format parser
+// ═══════════════════════════════════════════════════════════════════
+const PROM_RE = /^([\w:]+)(?:\{[^}]*\})?\s+([\d.e+\-]+)/gm;
+
+function parsePrometheus(text) {
+  const m = { running: 0, waiting: 0, finished: 0, gpuCache: 0 };
+  let match;
+  while ((match = PROM_RE.exec(text)) !== null) {
+    const name  = match[1];
+    const value = parseFloat(match[2]);
+    switch (name) {
+      case 'vllm:num_requests_running':  m.running  = value;        break;
+      case 'vllm:num_requests_waiting':  m.waiting  = value;        break;
+      case 'vllm:request_success_total': m.finished += value;       break;
+      case 'vllm:kv_cache_usage_perc':   m.gpuCache = value * 100; break;
+    }
+  }
+  PROM_RE.lastIndex = 0;
+  return m;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Color logic
+// ═══════════════════════════════════════════════════════════════════
+function computeSlots(m) {
+  const total        = m.running + m.waiting + m.finished;
+  const displayTotal = Math.min(total, DOT_POSITIONS.length);
+  const nRunning     = Math.min(m.running,  displayTotal);
+  const nWaiting     = Math.min(m.waiting,  displayTotal - nRunning);
+  const nFinished    = displayTotal - nRunning - nWaiting;
+  return {
+    displayTotal,
+    finishedEnd: nFinished,
+    waitingEnd:  nFinished + nWaiting,
+  };
+}
+
+function getDotColor(idx, finishedEnd, waitingEnd) {
+  if (idx < finishedEnd) return '#42a5f5';
+  if (idx < waitingEnd)  return '#ff9800';
+  return '#00bcd4';
+}
+
+function getDotClass(idx, finishedEnd, waitingEnd) {
+  if (idx < finishedEnd) return 'dot-finished';
+  if (idx < waitingEnd)  return 'dot-waiting';
+  return 'dot-running';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  D3 render
+// ═══════════════════════════════════════════════════════════════════
+function renderDots(metrics) {
+  const { displayTotal, finishedEnd, waitingEnd } = computeSlots(metrics);
+  const active = DOT_POSITIONS.slice(0, displayTotal);
+
+  const sel = d3.select('#dots')
+    .selectAll('circle')
+    .data(active, (d, i) => i);
+
+  sel.enter()
+    .append('circle')
+    .attr('r', DOT_RADIUS)
+    .attr('cx', d => d[0])
+    .attr('cy', d => d[1])
+    .attr('opacity', 0)
+    .merge(sel)
+    .attr('fill', (d, i) => getDotColor(i, finishedEnd, waitingEnd))
+    .attr('class', (d, i) => 'dot ' + getDotClass(i, finishedEnd, waitingEnd))
+    .transition().duration(260)
+    .attr('opacity', 1);
+
+  sel.exit()
+    .transition().duration(260)
+    .attr('opacity', 0)
+    .remove();
+}
+
+function updateStats(m) {
+  const total = m.running + m.waiting + m.finished;
+  document.getElementById('stat-total').textContent   = total;
+  document.getElementById('stat-running').textContent  = m.running;
+  document.getElementById('stat-waiting').textContent  = m.waiting;
+  document.getElementById('stat-gpu').textContent      = m.gpuCache.toFixed(1) + '%';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Error state
+// ═══════════════════════════════════════════════════════════════════
+function showError(msg) {
+  const box = document.getElementById('error-box');
+  document.getElementById('error-text').textContent = msg;
+  box.style.display = 'flex';
+}
+
+function hideError() {
+  document.getElementById('error-box').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Fetch metrics
+// ═══════════════════════════════════════════════════════════════════
+let fetchInFlight = false;
+
+async function fetchMetrics() {
+  if (fetchInFlight) return;
+  fetchInFlight = true;
+
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 4000);
+
+  const url = CONFIG.USE_PROXY
+    ? CONFIG.PROXY_URL
+    : `http://${CONFIG.SERVER_HOST}:${CONFIG.SERVER_PORT}${CONFIG.METRICS_PATH}`;
+
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    const text    = await res.text();
+    const metrics = parsePrometheus(text);
+    renderDots(metrics);
+    updateStats(metrics);
+    hideError();
+  } catch (err) {
+    let msg;
+    if (err.name === 'AbortError') {
+      msg = 'CONNECTION TIMEOUT (4s) — server may be unreachable';
+    } else if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+      msg = 'NETWORK ERROR — if CORS is blocking the request, set USE_PROXY: true in CONFIG and run metrics_proxy.py';
+    } else {
+      msg = `ERROR: ${err.message.toUpperCase()}`;
+    }
+    showError(msg);
+  } finally {
+    fetchInFlight = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Progress bar countdown
+// ═══════════════════════════════════════════════════════════════════
+let elapsed = 0;
+
+function startProgressLoop() {
+  setInterval(() => {
+    elapsed += 100;
+    const pct = Math.min((elapsed / CONFIG.REFRESH_INTERVAL) * 100, 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+
+    const remaining = Math.max(0, (CONFIG.REFRESH_INTERVAL - elapsed) / 1000);
+    document.getElementById('progress-label').textContent =
+      `REFRESH IN ${remaining.toFixed(1)}s`;
+
+    if (elapsed >= CONFIG.REFRESH_INTERVAL) {
+      elapsed = 0;
+      fetchMetrics();
+    }
+  }, 100);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Init
+// ═══════════════════════════════════════════════════════════════════
+(function init() {
+  const endpoint = CONFIG.USE_PROXY
+    ? CONFIG.PROXY_URL
+    : `http://${CONFIG.SERVER_HOST}:${CONFIG.SERVER_PORT}${CONFIG.METRICS_PATH}`;
+
+  document.getElementById('server-info').textContent =
+    `ENDPOINT: ${endpoint}  ·  INTERVAL: ${CONFIG.REFRESH_INTERVAL / 1000}s  ·  MAX DOTS: ${CONFIG.MAX_DOTS}  ·  PRECOMPUTED: ${DOT_POSITIONS.length} POSITIONS`;
+
+  fetchMetrics();
+  startProgressLoop();
+})();
+</script>
+</body>
+</html>

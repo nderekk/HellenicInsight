@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import time
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
@@ -161,7 +162,10 @@ if __name__ == "__main__":
     ]
  
     print(f"Sending {len(test_articles)} articles to vLLM server at {VLLM_URL}\n")
+    start = time.time()
     results = label_batch(test_articles)
+    elapsed = time.time() - start
+    print(f"10 articles in {elapsed:.2f}s = {elapsed/10:.2f}s per article")
  
     print("=" * 60)
     for i, result in enumerate(results):

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 // NEW: Imported 'Orbit' for the clean vector logo symbol
 import { ShieldCheck, BrainCircuit, Activity, Scale, Search, FileText, Orbit } from "lucide-react"
+import VllmEye from "@/components/VllmEye"
 
 const getPolLeanBadgeColor = (lean: string) => {
   switch (lean) {
@@ -29,23 +30,31 @@ export default function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   
   const [liveArticles, setLiveArticles] = useState<any[]>([])
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null)
 
   useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null
+
     const fetchLiveFeed = async () => {
       try {
         const response = await fetch('/api/articles')
         if (response.ok) {
           const data = await response.json()
           setLiveArticles(data)
+          setBackendOnline(true)
+        } else {
+          setBackendOnline(false)
+          if (interval) clearInterval(interval)
         }
-      } catch (error) {
-        console.error("Failed to fetch live feed:", error)
+      } catch {
+        setBackendOnline(false)
+        if (interval) clearInterval(interval)
       }
     }
 
     fetchLiveFeed()
-    const interval = setInterval(fetchLiveFeed, 10000)
-    return () => clearInterval(interval)
+    interval = setInterval(fetchLiveFeed, 10000)
+    return () => { if (interval) clearInterval(interval) }
   }, [])
 
   const handleAnalyze = async (existingArticle?: any) => {
@@ -82,8 +91,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen text-slate-900 p-8 font-sans selection:bg-red-100 relative">
-      
+    <div className="min-h-screen text-slate-900 p-8 pb-20 md:pb-8 font-sans selection:bg-red-100 relative">
+
+      {/* vLLM monitor — self-positioned: top-left on desktop, bottom strip on mobile */}
+      <VllmEye />
+
       {/* PURE CSS BRANDING HEADER - Clean, professional, scalable */}
       <div className="absolute top-6 left-6 flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity select-none cursor-default">
         {/* Core Ring Symbol */}
