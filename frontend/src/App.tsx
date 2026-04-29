@@ -141,12 +141,12 @@ export default function App() {
           <div className="h-px bg-slate-200 flex-grow"></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="flex overflow-x-auto pb-4 md:pb-0 md:grid md:grid-cols-3 gap-6 snap-x snap-mandatory scrollbar-hide">
           {liveArticles.length > 0 ? (
             liveArticles.map((article, index) => (
               <Card 
                 key={index} 
-                className="bg-white/70 border-slate-200 shadow-sm cursor-pointer hover:border-red-300 hover:bg-white hover:shadow-md transition-all group backdrop-blur-sm"
+                className="min-w-[280px] md:min-w-0 bg-white/70 border-slate-200 shadow-sm cursor-pointer hover:border-red-300 hover:bg-white hover:shadow-md transition-all group backdrop-blur-sm snap-center"
                 onClick={() => handleAnalyze(article)}
               >
                 <CardHeader>
@@ -174,7 +174,7 @@ export default function App() {
               </Card>
             ))
           ) : (
-             <div className="col-span-3 text-center py-10 text-slate-500">
+             <div className="col-span-3 text-center py-10 text-slate-500 w-full">
                Waiting for Spark pipeline to insert documents into MongoDB...
              </div>
           )}
