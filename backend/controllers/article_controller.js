@@ -2,8 +2,22 @@ const article = require('../models/articles_model');
 
 exports.getArticles = async (req, res) => {
     try {
-        const articles = await article.find();
-        res.json(articles);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 25;
+        const skip = (page - 1) * limit;
+
+        const total = await article.countDocuments();
+        const articles = await article.find()
+            .sort({ date: -1 }) // Sort by newest first
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            articles,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

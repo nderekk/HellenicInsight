@@ -68,6 +68,18 @@ const t = {
 // ==========================================
 // --- 2. BILINGUAL AI HELPERS ---
 // ==========================================
+// Formats dates safely from various formats (ISO, Timestamp, etc.)
+const formatDate = (dateValue: any) => {
+  if (!dateValue) return "";
+  try {
+    const d = new Date(dateValue);
+    if (isNaN(d.getTime())) return dateValue; // Fallback if invalid
+    return d.toLocaleDateString();
+  } catch (e) {
+    return dateValue;
+  }
+}
+
 // Safely pulls the correct language from the AI's nested JSON
 const getLocalizedText = (textData: any, lang: 'en' | 'el') => {
   if (!textData) return "";
@@ -101,10 +113,22 @@ const getPolIndicatorClass = (score: number) => {
 const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => {
   const { lang } = useContext(LanguageContext);
   const text = t[lang];
+  const reasoningRef = React.useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to reasoning when modal opens and analysis is done
+  React.useEffect(() => {
+    if (isOpen && !isAnalyzing && reasoningRef.current) {
+      // Small delay to ensure layout is ready
+      const timer = setTimeout(() => {
+        reasoningRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, isAnalyzing]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-50 border-slate-200 text-slate-900 sm:max-w-3xl shadow-2xl overflow-hidden p-0 h-[600px] flex flex-col">
+      <DialogContent className="bg-slate-50 border-slate-200 text-slate-900 sm:max-w-3xl shadow-2xl overflow-hidden p-0 h-[85vh] sm:h-[600px] flex flex-col">
         {isAnalyzing ? (
           <div className="flex-grow flex flex-col items-center justify-center space-y-6 bg-white">
             <div className="w-12 h-12 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin"></div>
@@ -115,7 +139,7 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
           </div>
         ) : (
           <>
-            <div className="bg-white border-b border-slate-200 px-6 py-6">
+            <div className="bg-white border-b border-slate-200 px-6 py-6 shrink-0">
               <DialogHeader>
                 <div className="flex items-center gap-2 mb-2">
                   <ShieldCheck className="w-5 h-5 text-emerald-600" />
@@ -131,7 +155,7 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
                       {activeArticle?.source}
                     </a>
                     <span className="text-slate-300 mx-1">•</span>
-                    <span className="text-slate-400 text-xs">{activeArticle?.date}</span>
+                    <span className="text-slate-400 text-xs">{formatDate(activeArticle?.date)}</span>
                 </DialogDescription>
                 <DialogDescription className="text-slate-500 mt-1 font-medium flex items-center gap-2"> 
                   {/* TRANSLATED TAGS */}
@@ -146,9 +170,9 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
               </DialogHeader>
             </div>
             
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 flex-grow">
-              <div className="space-y-6 flex-grow">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm h-full flex flex-col justify-center">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 overflow-y-auto flex-grow scroll-smooth">
+              <div className="space-y-6">
+                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm h-full flex flex-col justify-center min-h-[160px]">
                   <div className="flex justify-between items-center mb-4">
                     <span className="font-bold text-slate-800 flex items-center gap-2">
                       <Scale className="w-4 h-4 text-slate-400"/> {text.polLean}
@@ -166,13 +190,13 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
                 </div>
               </div>
 
-              <Card className="bg-white border-slate-200 shadow-sm h-full flex flex-col">
+              <Card ref={reasoningRef} className="bg-white border-slate-200 shadow-sm h-full flex flex-col min-h-[300px]">
                 <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50/50">
                   <CardTitle className="text-xs text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
                     <FileText className="w-4 h-4" /> {text.agentLog}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-4 text-slate-700 text-sm leading-relaxed font-medium flex-grow overflow-y-auto">
+                <CardContent className="pt-4 text-slate-700 text-sm leading-relaxed font-medium flex-grow">
                   {/* TRANSLATED REASONING */}
                   {getLocalizedText(activeArticle?.reasoning, lang)}
                 </CardContent>
@@ -201,13 +225,11 @@ const AnalyzerPage = () => {
   useEffect(() => {
     const fetchRecent = async () => {
       try {
-        const response = await fetch('/api/articles')
+        const response = await fetch('/api/articles?limit=5')
         if (response.ok) {
           const data = await response.json()
-          if (Array.isArray(data)) {
-            setRecentArticles(data.slice(0, 5)) 
-          } else if (data && Array.isArray(data.articles)) {
-            setRecentArticles(data.articles.slice(0, 5))
+          if (data && Array.isArray(data.articles)) {
+            setRecentArticles(data.articles)
           }
         }
       } catch (error) { console.error("Failed to fetch recent articles:", error) }
@@ -290,7 +312,7 @@ const AnalyzerPage = () => {
                     <Badge variant="secondary" className="text-[10px] px-2 py-0 bg-white/50 text-slate-500 border-none">
                       {article.source}
                     </Badge>
-                    {article.date}
+                    {formatDate(article.date)}
                   </span>
                 </div>
                 <Badge className={`shrink-0 ${getPolLeanBadgeColor(article.polLean)}`}>
@@ -323,30 +345,26 @@ const LiveFeedPage = () => {
   const [activeArticle, setActiveArticle] = useState<any>(null)
   
   const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 9 
+  const [totalPages, setTotalPages] = useState(1)
+  const ITEMS_PER_PAGE = 25 
 
   useEffect(() => {
     const fetchLiveFeed = async () => {
       try {
-        const response = await fetch('/api/articles')
+        const response = await fetch(`/api/articles?page=${currentPage}&limit=${ITEMS_PER_PAGE}`)
         if (response.ok) {
           const data = await response.json()
-          if (Array.isArray(data)) {
-            setLiveArticles(data) 
-          } else if (data && Array.isArray(data.articles)) {
+          if (data && Array.isArray(data.articles)) {
             setLiveArticles(data.articles)
+            setTotalPages(data.totalPages || 1)
           }
         }
       } catch (error) { console.error("Failed to fetch live feed:", error) }
     }
     fetchLiveFeed()
-    const interval = setInterval(fetchLiveFeed, 10000)
+    const interval = setInterval(fetchLiveFeed, 30000)
     return () => clearInterval(interval)
-  }, [])
-
-  const totalPages = Math.ceil(liveArticles.length / ITEMS_PER_PAGE) || 1
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const currentArticles = liveArticles.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  }, [currentPage])
 
   return (
     <div className="max-w-6xl mx-auto mt-10 pb-16">
@@ -360,14 +378,14 @@ const LiveFeedPage = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {currentArticles.length > 0 ? (
-          currentArticles.map((article, index) => (
+        {liveArticles.length > 0 ? (
+          liveArticles.map((article, index) => (
             <Card key={index} onClick={() => { setActiveArticle(article); setIsModalOpen(true); }} className="bg-white/80 border-slate-200 shadow-sm cursor-pointer hover:border-red-300 hover:bg-white hover:shadow-md transition-all group backdrop-blur-sm">
               <CardHeader>
                 <div className="flex justify-between items-center mb-3">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-slate-500 border-slate-200 bg-white/50">{article.source}</Badge>
-                    <span className="text-[10px] text-slate-400 font-medium">{article.date}</span>
+                    <span className="text-[10px] text-slate-400 font-medium">{formatDate(article.date)}</span>
                   </div>
                   <div className="w-12 h-1 bg-slate-200 rounded-full overflow-hidden opacity-60 group-hover:opacity-100 transition-opacity">
                     <div className={`h-full ${article.polScore <= 40 ? 'bg-red-500' : article.polScore <= 60 ? 'bg-slate-400' : 'bg-blue-600'}`} style={{ width: `${article.polScore}%` }} />
@@ -387,11 +405,14 @@ const LiveFeedPage = () => {
         )}
       </div>
 
-      {liveArticles.length > ITEMS_PER_PAGE && (
+      {totalPages > 1 && (
         <div className="flex justify-center items-center gap-6 mt-12">
           <Button 
             variant="outline" 
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => {
+              setCurrentPage(prev => Math.max(prev - 1, 1));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             disabled={currentPage === 1}
             className="bg-white/80 backdrop-blur-sm border-slate-200 text-slate-700 hover:bg-white disabled:opacity-50"
           >
@@ -404,7 +425,10 @@ const LiveFeedPage = () => {
           
           <Button 
             variant="outline" 
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            onClick={() => {
+              setCurrentPage(prev => Math.min(prev + 1, totalPages));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             disabled={currentPage === totalPages}
             className="bg-white/80 backdrop-blur-sm border-slate-200 text-slate-700 hover:bg-white disabled:opacity-50"
           >

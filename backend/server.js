@@ -40,8 +40,17 @@ MongoClient.connect(uri)
 // ==========================================
 app.get('/api/articles', async (req, res) => {
     try {
-        const rawArticles = await collection.find({}, { projection: { _id: 0 } }).toArray();
-        
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 25;
+        const skip = (page - 1) * limit;
+
+        const total = await collection.countDocuments();
+        const rawArticles = await collection.find({}, { projection: { _id: 0 } })
+            .sort({ date: -1 })
+            .skip(skip)
+            .limit(limit)
+            .toArray();
+
         const formattedArticles = rawArticles.map(doc => {
             const rawBias = doc.ai_labels?.bias || 0.5;
             const percentageScore = rawBias * 100;
@@ -54,6 +63,7 @@ app.get('/api/articles', async (req, res) => {
                 title: doc.title || "No Title",
                 source: doc.source || "Unknown Source",
                 url: doc.url || "#",
+                date: doc.date || "",
                 tags: doc.ai_labels?.primary_entities || [],
                 reasoning: doc.ai_labels?.reasoning || "Analysis pending...",
                 polLean: calculatedLean,
@@ -61,7 +71,12 @@ app.get('/api/articles', async (req, res) => {
             };
         });
 
-        res.json(formattedArticles);
+        res.json({
+            articles: formattedArticles,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
         
     } catch (error) {
         console.error(error);
