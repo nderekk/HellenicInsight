@@ -16,7 +16,7 @@ MODEL = os.environ["VLLM_MODEL"]
 MAX_WORKERS = 16       # parallel HTTP requests to vLLM
 TIMEOUT = 120          # seconds per request
 TEMPERATURE = 0.1
-MAX_TOKENS = 512
+MAX_TOKENS = 8000
 
 SYSTEM_PROMPT = """You are an expert Political Data Scientist and Computational Linguist specializing in Greek digital media and political discourse. Your task is to perform a deep-structure ideological analysis of Greek news articles.
 
@@ -63,7 +63,8 @@ def call_vllm(article_text: str) -> str:
         "model": MODEL,
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": article_text}
+            {"role": "user", "content": article_text},
+            {"role": "assistant", "content": "{"}   # ← prefill forces JSON-first output
         ],
         "temperature": TEMPERATURE,
         "max_tokens": MAX_TOKENS
@@ -86,7 +87,8 @@ def call_vllm(article_text: str) -> str:
 
 
 def safe_parse(raw: str) -> dict:
-    cleaned = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+    print(f"[RAW RESPONSE] {raw}...")  # Log the raw response for debugging
+    cleaned = raw.strip().removesuffix("```").strip()    
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:
@@ -115,9 +117,9 @@ def label_batch(articles: list[str]) -> list[dict]:
     results = [None] * len(articles)
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_idx = {
-            executor.submit(label_article, article): i
-            for i, article in enumerate(articles)
+            executor.submit(label_article, article): i for i, article in enumerate(articles)
         }
+        # Fix:
         for future in as_completed(future_to_idx):
             idx = future_to_idx[future]
             try:
