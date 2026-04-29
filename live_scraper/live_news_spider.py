@@ -110,15 +110,20 @@ class LiveGreekNewsSpider(SitemapSpider):
         self.cutoffs = {}
         self.newest_timestamps = {}
         
-        self.default_cutoff = datetime.now(timezone.utc) - timedelta(hours=3)
+        now = datetime.now(timezone.utc)
+        self.default_cutoff = now - timedelta(hours=2)
         self.sitemap_counts = {}  # sub-sitemap counter per domain (no-lastmod flood guard)
+        max_lookback = now - timedelta(hours=2)  # never scrape more than 2 hours back
 
         if os.path.exists(self.state_file):
             with open(self.state_file, 'r') as f:
                 try:
                     saved_times = json.load(f)
                     for dom, ts in saved_times.items():
-                        self.cutoffs[dom] = datetime.fromisoformat(ts)
+                        dt = datetime.fromisoformat(ts)
+                        if not dt.tzinfo:
+                            dt = dt.replace(tzinfo=timezone.utc)
+                        self.cutoffs[dom] = max(dt, max_lookback)
                 except Exception:
                     pass
 
