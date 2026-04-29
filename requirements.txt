@@ -4,3 +4,7 @@ flask
 flask-cors
 pymongo
 python-dotenv
+aiohttp
+crawl4ai
+requests
+scrapy

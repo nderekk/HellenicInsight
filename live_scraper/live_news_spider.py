@@ -15,7 +15,7 @@ class LiveGreekNewsSpider(SitemapSpider):
         'CLOSESPIDER_TIMEOUT': 600,        # hard stop after 10 minutes
         'DOWNLOAD_DELAY': 3.0,
         'RANDOMIZE_DOWNLOAD_DELAY': True,          # randomize between 1.5x–2x DOWNLOAD_DELAY
-        'CONCURRENT_REQUESTS_PER_DOMAIN': 1,
+        'CONCURRENT_REQUESTS_PER_DOMAIN': 2,
         'USER_AGENT': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
         'DEFAULT_REQUEST_HEADERS': {
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -34,67 +34,19 @@ class LiveGreekNewsSpider(SitemapSpider):
     }
 
     sitemap_urls = [
-        # ── Already implemented ──────────────────────────────────────────
         'https://www.iefimerida.gr/sitemap.xml',
         'https://www.protothema.gr/sitemap/newsarticles/sitemap_index.xml',
-
-        # ── New sources ──────────────────────────────────────────────────
-        # Kathimerini — centrist/conservative, top-tier daily
         'https://www.kathimerini.gr/sitemap.xml',
-
-        # Ta Nea — center-left daily, Alter Ego Media
         'https://www.tanea.gr/wp-content/uploads/json/sitemap-news.xml',
-
-        # To Vima — influential Sunday/daily analysis
         'https://www.tovima.gr/sitemap_index.xml',
-
-        # Naftemporiki — leading financial daily
-        'https://www.naftemporiki.gr/sitemap.xml',
-
-        # Efimerida ton Syntakton — journalist-owned, progressive
-        # efsyn has no public sitemap
-        # 'https://www.efsyn.gr/sitemap.xml',
-
-        # Ethnos — mainstream national daily
-        'https://www.ethnos.gr/sitemap.xml',
-
-        # in.gr — high-traffic digital portal (OTE/Cosmote group)
-        'https://www.in.gr/sitemap.xml',
-
-        # Skai.gr — news portal of SKAI TV/radio group
-        'https://www.skai.gr/sitemap.xml',
     ]
 
     sitemap_rules = [
-        # ── Protothema (existing) ────────────────────────────────────────
         (r'protothema\.gr.*/politics/|protothema\.gr.*/economy/|protothema\.gr.*/world/|protothema\.gr.*/greece/', 'parse'),
-
-        # ── Iefimerida (existing) ────────────────────────────────────────
         (r'iefimerida\.gr.*/politiki/|iefimerida\.gr.*/oikonomia/|iefimerida\.gr.*/kosmos/|iefimerida\.gr.*/ellada/', 'parse'),
-
-        # ── Kathimerini ──────────────────────────────────────────────────
         (r'kathimerini\.gr.*/\d+/', 'parse'),
-
-        # ── Ta Nea ───────────────────────────────────────────────────────
         (r'tanea\.gr.*/\d{4}/\d{2}/\d{2}/', 'parse'),
-
-        # ── To Vima ──────────────────────────────────────────────────────
         (r'tovima\.gr.*/\d{4}/\d{2}/\d{2}/', 'parse'),
-
-        # ── Naftemporiki ─────────────────────────────────────────────────
-        (r'naftemporiki\.gr/.+?/\d+/', 'parse'),
-
-        # ── Efsyn ────────────────────────────────────────────────────────
-        (r'efsyn\.gr/.*/\d+_', 'parse'),
-
-        # ── Ethnos ───────────────────────────────────────────────────────
-        (r'ethnos\.gr/.*/article/\d+/', 'parse'),
-
-        # ── in.gr ────────────────────────────────────────────────────────
-        (r'in\.gr.*/\d{4}/\d{2}/\d{2}/', 'parse'),
-
-        # ── Skai.gr ──────────────────────────────────────────────────────
-        (r'skai\.gr/(?:news|article)/', 'parse'),
     ]
 
     @classmethod
@@ -110,15 +62,20 @@ class LiveGreekNewsSpider(SitemapSpider):
         self.cutoffs = {}
         self.newest_timestamps = {}
         
-        self.default_cutoff = datetime.now(timezone.utc) - timedelta(hours=3)
+        now = datetime.now(timezone.utc)
+        self.default_cutoff = now - timedelta(hours=2)
         self.sitemap_counts = {}  # sub-sitemap counter per domain (no-lastmod flood guard)
+        max_lookback = now - timedelta(hours=2)  # never scrape more than 2 hours back
 
         if os.path.exists(self.state_file):
             with open(self.state_file, 'r') as f:
                 try:
                     saved_times = json.load(f)
                     for dom, ts in saved_times.items():
-                        self.cutoffs[dom] = datetime.fromisoformat(ts)
+                        dt = datetime.fromisoformat(ts)
+                        if not dt.tzinfo:
+                            dt = dt.replace(tzinfo=timezone.utc)
+                        self.cutoffs[dom] = max(dt, max_lookback)
                 except Exception:
                     pass
 
@@ -189,16 +146,6 @@ class LiveGreekNewsSpider(SitemapSpider):
             article_data = self.extract_tanea(response)
         elif 'tovima.gr' in domain:
             article_data = self.extract_tovima(response)
-        elif 'naftemporiki.gr' in domain:
-            article_data = self.extract_naftemporiki(response)
-        elif 'efsyn.gr' in domain:
-            article_data = self.extract_efsyn(response)
-        elif 'ethnos.gr' in domain:
-            article_data = self.extract_ethnos(response)
-        elif 'in.gr' in domain:
-            article_data = self.extract_ingr(response)
-        elif 'skai.gr' in domain:
-            article_data = self.extract_skai(response)
 
         if article_data and article_data.get('date'):
             article_date_obj = self.parse_datetime(article_data['date'])
@@ -290,94 +237,6 @@ class LiveGreekNewsSpider(SitemapSpider):
             ).strip(),
             'text': self.clean_text(
                 ' '.join(response.css('.main-content p::text').getall())
-            ),
-        }
-
-    def extract_naftemporiki(self, response):
-        return {
-            'source': 'naftemporiki.gr',
-            'url': response.url,
-            'title': self.clean_text(
-                response.css('h1::text').get()
-            ),
-            'date': (
-                response.css('time.entry-date-published::attr(datetime)').get()
-                or response.css('meta[property="article:published_time"]::attr(content)').get()
-                or response.css('.article-date::text').get()
-                or ''
-            ).strip(),
-            'text': self.clean_text(
-                ' '.join(response.css('.post-content p::text').getall())
-            ),
-        }
-
-    def extract_efsyn(self, response):
-        return {
-            'source': 'efsyn.gr',
-            'url': response.url,
-            'title': self.clean_text(
-                response.css('h1::text').get()
-            ),
-            'date': (
-                response.css('time.default-date::attr(datetime)').get()
-                or response.css('meta[property="article:published_time"]::attr(content)').get()
-                or response.css('.field--name-created::text').get()
-                or ''
-            ).strip(),
-            'text': self.clean_text(
-                ' '.join(response.css('.article__body p::text').getall())
-            ),
-        }
-
-    def extract_ethnos(self, response):
-        return {
-            'source': 'ethnos.gr',
-            'url': response.url,
-            'title': self.clean_text(
-                response.css('h1::text').get()
-            ),
-            'date': (
-                response.css('meta[property="article:modified_time"]::attr(content)').get()
-                or response.css('meta[property="article:published_time"]::attr(content)').get()
-                or ''
-            ).strip(),
-            'text': self.clean_text(
-                ' '.join(response.css('.article-content-container p::text').getall())
-            ),
-        }
-
-    def extract_ingr(self, response):
-        return {
-            'source': 'in.gr',
-            'url': response.url,
-            'title': self.clean_text(
-                response.css('h1::text').get()
-            ),
-            'date': (
-                response.css('time::attr(datetime)').get()
-                or response.css('meta[property="article:published_time"]::attr(content)').get()
-                or response.css('.article-date time::attr(datetime)').get()
-                or ''
-            ).strip(),
-            'text': self.clean_text(
-                ' '.join(response.css('.main-content p::text').getall())
-            ),
-        }
-
-    def extract_skai(self, response):
-        return {
-            'source': 'skai.gr',
-            'url': response.url,
-            'title': self.clean_text(
-                response.css('h1::text').get()
-            ),
-            'date': (
-                response.css('time::attr(datetime)').get()
-                or response.css('meta[property="article:published_time"]::attr(content)').get()
-                or ''
-            ).strip(),
-            'text': self.clean_text(
-                ' '.join(response.css('.post-content p::text').getall())
             ),
         }
 

@@ -49,36 +49,6 @@ def clean_tovima_text(raw_text):
     return clean_text.strip()
 
 
-def clean_naftemporiki_text(raw_text):
-    if not raw_text or pd.isna(raw_text):
-        return None
-    clean_text = str(raw_text)
-    for marker in ["Διαβάστε επίσης", "ΔΕΙΤΕ ΕΠΙΣΗΣ", "Premium περιεχόμενο"]:
-        if marker in clean_text:
-            clean_text = clean_text.split(marker)[0]
-    return clean_text.strip()
-
-
-def clean_efsyn_text(raw_text):
-    if not raw_text or pd.isna(raw_text):
-        return None
-    clean_text = str(raw_text)
-    for marker in ["Διαβάστε επίσης", "Δείτε επίσης"]:
-        if marker in clean_text:
-            clean_text = clean_text.split(marker)[0]
-    return clean_text.strip()
-
-
-def clean_skai_text(raw_text):
-    if not raw_text or pd.isna(raw_text):
-        return None
-    clean_text = str(raw_text)
-    for marker in ["Διαβάστε επίσης", "Δείτε επίσης", "ΔΕΙΤΕ ΑΚΟΜΑ"]:
-        if marker in clean_text:
-            clean_text = clean_text.split(marker)[0]
-    return clean_text.strip()
-
-
 # ── GENERAL CLEANER (applied to all sources after source-specific pass) ───────
 
 def general_cleaner(raw_text):
@@ -117,9 +87,6 @@ source_cleaners = {
     'kathimerini.gr': clean_kathimerini_text,
     'tanea.gr':       clean_tanea_text,
     'tovima.gr':      clean_tovima_text,
-    'naftemporiki.gr': clean_naftemporiki_text,
-    'efsyn.gr':       clean_efsyn_text,
-    'skai.gr':        clean_skai_text,
 }
 
 for source, cleaner_fn in source_cleaners.items():
