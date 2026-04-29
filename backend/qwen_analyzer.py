@@ -86,7 +86,7 @@ async def analyze_article(url):
         "polScore": pol_score_int,
         "reasoning": ai_data.get("reasoning", "Error generating reasoning."),
         "tags": ai_data.get("primary_entities", []),
-        "source": "vLLM Engine",
+        "source": url[:25],
         "url": url
     }
 
