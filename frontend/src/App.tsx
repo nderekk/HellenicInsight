@@ -74,7 +74,13 @@ const formatDate = (dateValue: any) => {
   try {
     const d = new Date(dateValue);
     if (isNaN(d.getTime())) return dateValue; // Fallback if invalid
-    return d.toLocaleDateString();
+    return d.toLocaleString([], { 
+      year: 'numeric', 
+      month: 'numeric', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
   } catch (e) {
     return dateValue;
   }
