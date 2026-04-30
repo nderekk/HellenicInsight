@@ -150,7 +150,8 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-50 border-slate-200 text-slate-900 sm:max-w-3xl shadow-2xl overflow-hidden p-0 h-auto sm:h-[600px] flex flex-col">
+      {/* 1. Added max-h-[90vh] so the modal never exceeds the phone's screen height */}
+      <DialogContent className="bg-slate-50 border-slate-200 text-slate-900 sm:max-w-3xl shadow-2xl overflow-hidden p-0 max-h-[90vh] sm:h-[600px] flex flex-col">
         {isAnalyzing ? (
           <div className="flex-grow flex flex-col items-center justify-center space-y-6 bg-white min-h-[400px]">
             <div className="w-12 h-12 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin"></div>
@@ -161,24 +162,26 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
           </div>
         ) : (
           <>
-            <div className="bg-white border-b border-slate-200 px-6 py-6 shrink-0">
+            <div className="bg-white border-b border-slate-200 px-5 sm:px-6 py-5 sm:py-6 shrink-0">
               <DialogHeader>
                 <div className="flex items-center gap-2 mb-2">
                   <ShieldCheck className="w-5 h-5 text-emerald-600" />
                   <span className="text-sm font-bold text-emerald-600 uppercase tracking-widest">{text.analysisVerified}</span>
                 </div>
-                <DialogTitle className="text-2xl font-extrabold text-slate-900 leading-tight">
+                {/* TRANSLATED TITLE */}
+                <DialogTitle className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">
                   {getLocalizedText(activeArticle?.title, lang)}
                 </DialogTitle>
-                <DialogDescription className="text-slate-500 mt-1 font-medium flex items-center gap-2">
+                <DialogDescription className="text-slate-500 mt-1 font-medium flex items-center gap-2 flex-wrap">
                   {text.source}
                     <a href={activeArticle?.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline hover:text-blue-800 transition-colors">
                       {activeArticle?.source}
                     </a>
-                    <span className="text-slate-300 mx-1">•</span>
-                    <span className="text-slate-400 text-xs">{formatDate(activeArticle?.date)}</span>
+                    <span className="text-slate-300 mx-1 hidden sm:inline">•</span>
+                    <span className="text-slate-400 text-xs w-full sm:w-auto">{formatDate(activeArticle?.date)}</span>
                 </DialogDescription>
-                <DialogDescription className="text-slate-500 mt-1 font-medium flex items-center gap-2"> 
+                <DialogDescription className="text-slate-500 mt-2 sm:mt-1 font-medium flex items-center gap-2 flex-wrap"> 
+                  {/* TRANSLATED TAGS */}
                   {activeArticle?.tags && getLocalizedArray(activeArticle.tags, lang).length > 0 ? (
                     getLocalizedArray(activeArticle.tags, lang).map((tag: string, index: number) => (
                       <Badge key={index} variant="outline" className="text-slate-500 border-slate-200 bg-slate-50">{tag}</Badge>
@@ -190,7 +193,8 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
               </DialogHeader>
             </div>
             
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 flex-grow overflow-hidden">
+            {/* 2. Changed overflow-hidden to overflow-y-auto so the mobile layout can scroll */}
+            <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 flex-grow overflow-y-auto custom-scrollbar">
               <div className="space-y-6">
                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm h-full flex flex-col justify-center min-h-[160px]">
                   <div className="flex justify-between items-center mb-4">
@@ -210,13 +214,15 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
                 </div>
               </div>
 
-              <Card className="bg-white border-slate-200 shadow-sm flex flex-col h-[350px] md:h-full">
+              {/* 3. Re-enabled the Card's natural height on mobile, but kept it strict on PC */}
+              <Card className="bg-white border-slate-200 shadow-sm flex flex-col min-h-[300px] md:h-full">
                 <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50/50 shrink-0">
                   <CardTitle className="text-xs text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
                     <FileText className="w-4 h-4" /> {text.agentLog}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-4 text-slate-700 text-sm leading-relaxed font-medium overflow-y-auto flex-grow custom-scrollbar">
+                <CardContent className="pt-4 pb-6 text-slate-700 text-sm leading-relaxed font-medium overflow-y-auto flex-grow custom-scrollbar">
+                  {/* TRANSLATED REASONING */}
                   {getLocalizedText(activeArticle?.reasoning, lang)}
                 </CardContent>
               </Card>
