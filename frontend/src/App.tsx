@@ -36,7 +36,7 @@ const t = {
     center: "Center",
     farRight: "Far Right",
     agentLog: "Agent Reasoning Log",
-    runningAI: "Running Python AI Script...",
+    runningAI: "Politican Analysis using AI...",
     orchestrating: "Orchestrating agent inference"
   },
   el: {
@@ -60,7 +60,7 @@ const t = {
     center: "Κέντρο",
     farRight: "Δεξιά",
     agentLog: "Αιτιολόγηση AI",
-    runningAI: "Εκτέλεση σεναρίου AI...",
+    runningAI: "Εκτέλεση πολιτικής ανάλυσης με AI...",
     orchestrating: "Οργάνωση συμπερασμάτων"
   }
 };
@@ -497,8 +497,8 @@ const Navbar = () => {
             className="rounded-full px-2 sm:px-3 mr-1 sm:mr-4 border-slate-300 text-slate-600 hover:text-slate-900 bg-white/50 text-xs sm:text-sm h-9 sm:h-10"
           >
             <Globe className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
-            <span className="hidden sm:inline">{lang === 'en' ? 'EL' : 'EN'}</span>
-            <span className="sm:hidden">{lang === 'en' ? 'EL' : 'EN'}</span>
+            <span className="hidden sm:inline">{lang === 'en' ? 'EN' : 'GR'}</span>
+            <span className="sm:hidden">{lang === 'en' ? 'EN' : 'GR'}</span>
           </Button>
 
           {/* Analyzer Button */}
