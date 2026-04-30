@@ -104,7 +104,8 @@ def write_to_mongo(df, batch_id):
 
 query = parsed_stream.writeStream \
     .foreachBatch(write_to_mongo) \
-    .option("checkpointLocation", "/tmp/spark_checkpoints/articles_to_mongo") \
+    .option("checkpointLocation", "/tmp/spark_checkpoints/demo_articles_to_mongo") \
+    .option("spark.sql.streaming.metricsEnabled", "false") \
     .start()
 
 print("Spark is listening on raw-articles → vLLM → MongoDB")
