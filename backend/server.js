@@ -135,26 +135,26 @@ function runProcess(command, args, workingDirectory) {
     });
 }
 
-cron.schedule('45 * * * *', async () => {
-    console.log('Initiating hourly scraper pipeline...');
-    const scraperDir = path.join(__dirname, '../live_scraper');
+// cron.schedule('00 * * * *', async () => {
+//     console.log('Initiating hourly scraper pipeline...');
+//     const scraperDir = path.join(__dirname, '../live_scraper');
 
-    try {
-        console.log('Step 1: Running Scrapy Spider...');
-        await runProcess('scrapy', ['runspider', 'live_news_spider.py', '-O', 'raw_news.jsonl'], scraperDir);
+//     try {
+//         console.log('Step 1: Running Scrapy Spider...');
+//         await runProcess('scrapy', ['runspider', 'live_news_spider.py', '-O', 'raw_news.jsonl'], scraperDir);
 
-        console.log('Step 2: Running Cleaner...');
-        await runProcess('python', ['live_cleaner.py'], scraperDir);
+//         console.log('Step 2: Running Cleaner...');
+//         await runProcess('python', ['live_cleaner.py'], scraperDir);
 
-        console.log('Pipeline finished! kafka_feed.jsonl is updated and ready.');
+//         console.log('Pipeline finished! kafka_feed.jsonl is updated and ready.');
 
-        console.log('Step 3 : Sending to kafka');
-        await runProcess('python',['producer.py'],__dirname);
+//         console.log('Step 3 : Sending to kafka');
+//         await runProcess('python',['producer.py'],__dirname);
         
-    } catch (error) {
-        console.error('Pipeline failed during execution:', error);
-    }
-});
+//     } catch (error) {
+//         console.error('Pipeline failed during execution:', error);
+//     }
+// });
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
