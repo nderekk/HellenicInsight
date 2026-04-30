@@ -342,6 +342,13 @@ const LiveFeedPage = () => {
   const [totalPages, setTotalPages] = useState(1)
   const ITEMS_PER_PAGE = 25 
 
+  // --- FILTER BAR STATE & LOGIC ---
+  const [selectedSource, setSelectedSource] = useState('All')
+  const uniqueSources = ['All', ...new Set(liveArticles.map(article => article.source).filter(Boolean))];
+  const filteredArticles = selectedSource === 'All' 
+    ? liveArticles 
+    : liveArticles.filter(article => article.source === selectedSource);
+
   useEffect(() => {
     const fetchLiveFeed = async () => {
       try {
@@ -371,9 +378,29 @@ const LiveFeedPage = () => {
         <div className="h-px bg-slate-200 flex-grow opacity-50"></div>
       </div>
 
+      {/* --- NEW FILTER BAR UI --- */}
+      {liveArticles.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-2 mb-8">
+          {uniqueSources.map(source => (
+            <button
+              key={source}
+              onClick={() => setSelectedSource(source)}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
+                selectedSource === source 
+                  ? 'bg-slate-800 text-white shadow-md' 
+                  : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              {source}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {liveArticles.length > 0 ? (
-          liveArticles.map((article, index) => (
+        {/* --- USING FILTERED ARTICLES --- */}
+        {filteredArticles.length > 0 ? (
+          filteredArticles.map((article, index) => (
             <Card key={index} onClick={() => { setActiveArticle(article); setIsModalOpen(true); }} className="bg-white/80 border-slate-200 shadow-sm cursor-pointer hover:border-red-300 hover:bg-white hover:shadow-md transition-all group backdrop-blur-sm">
               <CardHeader>
                 <div className="flex justify-between items-center mb-3">
@@ -394,7 +421,7 @@ const LiveFeedPage = () => {
           ))
         ) : (
            <div className="col-span-full text-center py-20 text-slate-500 bg-white/50 backdrop-blur-sm border border-slate-200 border-dashed rounded-xl">
-             {text.waitingData}
+             {selectedSource !== 'All' ? 'No articles found for this source on this page.' : text.waitingData}
            </div>
         )}
       </div>
@@ -445,43 +472,60 @@ const Navbar = () => {
   const text = t[lang];
   
   return (
-    <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
         
-        <div className="flex items-center gap-3 select-none">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full border border-slate-300 bg-slate-50 shadow-sm">
-            <Orbit className="w-5 h-5 text-slate-500" strokeWidth={1.5} />
+        {/* LEFT SIDE: Logo */}
+        <div className="flex items-center gap-2 sm:gap-3 select-none shrink-0">
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-slate-300 bg-slate-50 shadow-sm">
+            <Orbit className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" strokeWidth={1.5} />
           </div>
           <div className="flex flex-col justify-center">
-            <span className="text-xl font-extrabold tracking-tight text-slate-700 leading-none">
+            <span className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-700 leading-none">
               BigO <span className="text-indigo-600/80">No</span>
             </span>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-0.5">Powered By</span>
+            <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-0.5">Powered By</span>
           </div>
         </div>
 
-        <div className="flex gap-2 items-center">
+        {/* RIGHT SIDE: Buttons */}
+        <div className="flex gap-1 sm:gap-2 items-center">
           {/* Language Toggle Button */}
           <Button 
             variant="outline" 
             onClick={() => setLang(lang === 'en' ? 'el' : 'en')}
-            className="rounded-full px-3 mr-4 border-slate-300 text-slate-600 hover:text-slate-900 bg-white/50"
+            className="rounded-full px-2 sm:px-3 mr-1 sm:mr-4 border-slate-300 text-slate-600 hover:text-slate-900 bg-white/50 text-xs sm:text-sm h-9 sm:h-10"
           >
-            <Globe className="w-4 h-4 mr-2" />
-            {lang === 'en' ? 'EL' : 'EN'}
+            <Globe className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+            <span className="hidden sm:inline">{lang === 'en' ? 'EL' : 'EN'}</span>
+            <span className="sm:hidden">{lang === 'en' ? 'EL' : 'EN'}</span>
           </Button>
 
+          {/* Analyzer Button */}
           <Link to="/">
-            <Button variant={location.pathname === '/' ? 'default' : 'ghost'} className={location.pathname === '/' ? 'bg-slate-900 text-white' : 'text-slate-500'}>
-              <Search className="w-4 h-4 mr-2" /> {text.navAnalyzer}
+            <Button 
+              variant={location.pathname === '/' ? 'default' : 'ghost'} 
+              className={`px-3 sm:px-4 h-9 sm:h-10 ${location.pathname === '/' ? 'bg-slate-900 text-white' : 'text-slate-500'}`}
+            >
+              <Search className="w-4 h-4 sm:mr-2" /> 
+              {/* This text hides on mobile, shows on larger screens */}
+              <span className="hidden sm:inline">{text.navAnalyzer}</span> 
             </Button>
           </Link>
+
+          {/* Live Feed Button */}
           <Link to="/feed">
-            <Button variant={location.pathname === '/feed' ? 'default' : 'ghost'} className={location.pathname === '/feed' ? 'bg-red-600 text-white hover:bg-red-700' : 'text-slate-500'}>
-              <LayoutGrid className="w-4 h-4 mr-2" /> {text.navLiveFeed}
+            <Button 
+              variant={location.pathname === '/feed' ? 'default' : 'ghost'} 
+              className={`px-3 sm:px-4 h-9 sm:h-10 ${location.pathname === '/feed' ? 'bg-red-600 text-white hover:bg-red-700' : 'text-slate-500'}`}
+            >
+              <LayoutGrid className="w-4 h-4 sm:mr-2" /> 
+              {/* This text hides on mobile, shows on larger screens */}
+              <span className="hidden sm:inline">{text.navLiveFeed}</span>
             </Button>
           </Link>
         </div>
+
       </div>
     </nav>
   )
