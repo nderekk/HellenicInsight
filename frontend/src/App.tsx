@@ -32,12 +32,13 @@ const t = {
     source: "Source:",
     noTags: "No tags available",
     polLean: "Political Lean",
-    farLeft: "Far Left",
+    farLeft: "Left", // Shortened for cleaner badges
     center: "Center",
-    farRight: "Far Right",
+    farRight: "Right", // Shortened for cleaner badges
     agentLog: "Agent Reasoning Log",
     runningAI: "Politican Analysis using AI...",
-    orchestrating: "Orchestrating agent inference"
+    orchestrating: "Orchestrating agent inference",
+    avgBias: "Average Bias" 
   },
   el: {
     navAnalyzer: "Ανάλυση",
@@ -61,19 +62,19 @@ const t = {
     farRight: "Δεξιά",
     agentLog: "Αιτιολόγηση AI",
     runningAI: "Εκτέλεση πολιτικής ανάλυσης με AI...",
-    orchestrating: "Οργάνωση συμπερασμάτων"
+    orchestrating: "Οργάνωση συμπερασμάτων",
+    avgBias: "Μέση Τάση" 
   }
 };
 
 // ==========================================
 // --- 2. BILINGUAL AI HELPERS ---
 // ==========================================
-// Formats dates safely from various formats (ISO, Timestamp, etc.)
 const formatDate = (dateValue: any) => {
   if (!dateValue) return "";
   try {
     const d = new Date(dateValue);
-    if (isNaN(d.getTime())) return dateValue; // Fallback if invalid
+    if (isNaN(d.getTime())) return dateValue; 
     return d.toLocaleString([], { 
       year: 'numeric', 
       month: 'numeric', 
@@ -86,16 +87,15 @@ const formatDate = (dateValue: any) => {
   }
 }
 
-// Safely pulls the correct language from the AI's nested JSON
 const getLocalizedText = (textData: any, lang: 'en' | 'el') => {
   if (!textData) return "";
-  if (typeof textData === 'string') return textData; // Safety fallback for old database entries
+  if (typeof textData === 'string') return textData; 
   return textData[lang] || textData['el'] || textData['en'] || ""; 
 }
 
 const getLocalizedArray = (arrayData: any, lang: 'en' | 'el') => {
   if (!arrayData) return [];
-  if (Array.isArray(arrayData)) return arrayData; // Safety fallback for old database entries
+  if (Array.isArray(arrayData)) return arrayData; 
   return arrayData[lang] || arrayData['el'] || arrayData['en'] || [];
 }
 
@@ -109,8 +109,36 @@ const getPolLeanBadgeColor = (lean: string) => {
 
 const getPolIndicatorClass = (score: number) => {
   if (score <= 40) return '[&>div]:bg-red-500' 
-  if (score <= 60) return '[&>div]:bg-slate-400' 
+  if (score <= 60) return '[&>div]:bg-slate-500' 
   return '[&>div]:bg-blue-600' 
+}
+
+// NEW: Helper for Mean Score Badge Coloring
+const getPolBadgeColorByScore = (score: number) => {
+  if (score <= 40) return 'bg-red-100 text-red-700 border-red-200' 
+  if (score <= 60) return 'bg-slate-100 text-slate-600 border-slate-200' 
+  return 'bg-blue-100 text-blue-700 border-blue-200' 
+}
+
+// NEW: Helper for Mean Score Label
+const getPolLeanLabel = (score: number, textObj: any) => {
+  if (score <= 40) return textObj.farLeft;
+  if (score <= 60) return textObj.center;
+  return textObj.farRight;
+}
+
+// NEW: Helper for Mean Score Text/Icon Color
+const getPolIconColor = (score: number) => {
+  if (score <= 40) return 'text-red-500' 
+  if (score <= 60) return 'text-slate-400' 
+  return 'text-blue-500' 
+}
+
+// NEW: Helper for Mean Score Border Color
+const getPolBorderColor = (score: number) => {
+  if (score <= 40) return 'border-red-200' 
+  if (score <= 60) return 'border-slate-200' 
+  return 'border-blue-200' 
 }
 
 // ==========================================
@@ -139,7 +167,6 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
                   <ShieldCheck className="w-5 h-5 text-emerald-600" />
                   <span className="text-sm font-bold text-emerald-600 uppercase tracking-widest">{text.analysisVerified}</span>
                 </div>
-                {/* TRANSLATED TITLE */}
                 <DialogTitle className="text-2xl font-extrabold text-slate-900 leading-tight">
                   {getLocalizedText(activeArticle?.title, lang)}
                 </DialogTitle>
@@ -152,7 +179,6 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
                     <span className="text-slate-400 text-xs">{formatDate(activeArticle?.date)}</span>
                 </DialogDescription>
                 <DialogDescription className="text-slate-500 mt-1 font-medium flex items-center gap-2"> 
-                  {/* TRANSLATED TAGS */}
                   {activeArticle?.tags && getLocalizedArray(activeArticle.tags, lang).length > 0 ? (
                     getLocalizedArray(activeArticle.tags, lang).map((tag: string, index: number) => (
                       <Badge key={index} variant="outline" className="text-slate-500 border-slate-200 bg-slate-50">{tag}</Badge>
@@ -191,7 +217,6 @@ const AnalysisModal = ({ isOpen, onClose, isAnalyzing, activeArticle }: any) => 
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 text-slate-700 text-sm leading-relaxed font-medium overflow-y-auto flex-grow custom-scrollbar">
-                  {/* TRANSLATED REASONING */}
                   {getLocalizedText(activeArticle?.reasoning, lang)}
                 </CardContent>
               </Card>
@@ -298,7 +323,6 @@ const AnalyzerPage = () => {
                 className="group flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl hover:border-red-300 hover:shadow-md transition-all cursor-pointer"
               >
                 <div className="flex flex-col overflow-hidden mr-4">
-                  {/* TRANSLATED RECENT TITLE */}
                   <span className="text-sm font-bold text-slate-800 truncate group-hover:text-red-600 transition-colors">
                     {getLocalizedText(article.title, lang)}
                   </span>
@@ -342,12 +366,15 @@ const LiveFeedPage = () => {
   const [totalPages, setTotalPages] = useState(1)
   const ITEMS_PER_PAGE = 25 
 
-  // --- FILTER BAR STATE & LOGIC ---
   const [selectedSource, setSelectedSource] = useState('All')
   const uniqueSources = ['All', ...new Set(liveArticles.map(article => article.source).filter(Boolean))];
   const filteredArticles = selectedSource === 'All' 
     ? liveArticles 
     : liveArticles.filter(article => article.source === selectedSource);
+
+  const meanPolScore = selectedSource !== 'All' && filteredArticles.length > 0
+    ? Math.round(filteredArticles.reduce((acc, curr) => acc + (curr.polScore || 50), 0) / filteredArticles.length)
+    : 0;
 
   useEffect(() => {
     const fetchLiveFeed = async () => {
@@ -378,7 +405,6 @@ const LiveFeedPage = () => {
         <div className="h-px bg-slate-200 flex-grow opacity-50"></div>
       </div>
 
-      {/* --- NEW FILTER BAR UI --- */}
       {liveArticles.length > 0 && (
         <div className="flex flex-wrap justify-center gap-2 mb-8">
           {uniqueSources.map(source => (
@@ -397,8 +423,36 @@ const LiveFeedPage = () => {
         </div>
       )}
 
+      {/* --- UPDATED: Source Statistics Bar with Colored Badges & Borders --- */}
+      {selectedSource !== 'All' && filteredArticles.length > 0 && (
+        <div className={`max-w-md mx-auto mb-10 bg-white p-5 rounded-xl border shadow-sm animate-in fade-in slide-in-from-top-4 transition-colors duration-300 ${getPolBorderColor(meanPolScore)}`}>
+          <div className="flex justify-between items-center mb-3">
+            <span className="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <Scale className={`w-4 h-4 ${getPolIconColor(meanPolScore)} transition-colors duration-300`}/>
+              {text.avgBias} <span className="text-slate-400 font-medium">({selectedSource})</span>
+            </span>
+            <div className="flex items-center gap-2">
+              <Badge className={getPolBadgeColorByScore(meanPolScore)}>
+                {getPolLeanLabel(meanPolScore, text)}
+              </Badge>
+              <span className="text-xs font-bold text-slate-500">
+                {meanPolScore}/100
+              </span>
+            </div>
+          </div>
+          <div className="relative pt-1">
+            <Progress 
+              value={meanPolScore} 
+              className={`h-3 bg-slate-100 transition-all duration-500 ${getPolIndicatorClass(meanPolScore)}`} 
+            />
+            <div className="flex mt-2 items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+              <span>{text.farLeft}</span><span>{text.center}</span><span>{text.farRight}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* --- USING FILTERED ARTICLES --- */}
         {filteredArticles.length > 0 ? (
           filteredArticles.map((article, index) => (
             <Card key={index} onClick={() => { setActiveArticle(article); setIsModalOpen(true); }} className="bg-white/80 border-slate-200 shadow-sm cursor-pointer hover:border-red-300 hover:bg-white hover:shadow-md transition-all group backdrop-blur-sm">
@@ -409,10 +463,9 @@ const LiveFeedPage = () => {
                     <span className="text-[10px] text-slate-400 font-medium">{formatDate(article.date)}</span>
                   </div>
                   <div className="w-12 h-1 bg-slate-200 rounded-full overflow-hidden opacity-60 group-hover:opacity-100 transition-opacity">
-                    <div className={`h-full ${article.polScore <= 40 ? 'bg-red-500' : article.polScore <= 60 ? 'bg-slate-400' : 'bg-blue-600'}`} style={{ width: `${article.polScore}%` }} />
+                    <div className={`h-full ${article.polScore <= 40 ? 'bg-red-500' : article.polScore <= 60 ? 'bg-slate-500' : 'bg-blue-600'}`} style={{ width: `${article.polScore}%` }} />
                   </div>
                 </div>
-                {/* TRANSLATED FEED TITLE */}
                 <CardTitle className="text-slate-800 group-hover:text-red-600 transition-colors leading-snug text-base">
                   {getLocalizedText(article.title, lang)}
                 </CardTitle>
@@ -475,7 +528,6 @@ const Navbar = () => {
     <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 w-full overflow-hidden">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
         
-        {/* LEFT SIDE: Logo */}
         <div className="flex items-center gap-2 sm:gap-3 select-none shrink-0">
           <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-slate-300 bg-slate-50 shadow-sm">
             <Orbit className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" strokeWidth={1.5} />
@@ -488,9 +540,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* RIGHT SIDE: Buttons */}
         <div className="flex gap-1 sm:gap-2 items-center">
-          {/* Language Toggle Button */}
           <Button 
             variant="outline" 
             onClick={() => setLang(lang === 'en' ? 'el' : 'en')}
@@ -501,26 +551,22 @@ const Navbar = () => {
             <span className="sm:hidden">{lang === 'en' ? 'EN' : 'GR'}</span>
           </Button>
 
-          {/* Analyzer Button */}
           <Link to="/">
             <Button 
               variant={location.pathname === '/' ? 'default' : 'ghost'} 
               className={`px-3 sm:px-4 h-9 sm:h-10 ${location.pathname === '/' ? 'bg-slate-900 text-white' : 'text-slate-500'}`}
             >
               <Search className="w-4 h-4 sm:mr-2" /> 
-              {/* This text hides on mobile, shows on larger screens */}
               <span className="hidden sm:inline">{text.navAnalyzer}</span> 
             </Button>
           </Link>
 
-          {/* Live Feed Button */}
           <Link to="/feed">
             <Button 
               variant={location.pathname === '/feed' ? 'default' : 'ghost'} 
               className={`px-3 sm:px-4 h-9 sm:h-10 ${location.pathname === '/feed' ? 'bg-red-600 text-white hover:bg-red-700' : 'text-slate-500'}`}
             >
               <LayoutGrid className="w-4 h-4 sm:mr-2" /> 
-              {/* This text hides on mobile, shows on larger screens */}
               <span className="hidden sm:inline">{text.navLiveFeed}</span>
             </Button>
           </Link>
