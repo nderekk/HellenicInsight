@@ -57,40 +57,35 @@ The backend also orchestrates the scraping pipeline automatically via a cron job
 ## Project Structure
 
 ```
-keifer_prep/
+HellenicInsight/
 │
 ├── live_scraper/
-│   ├── live_news_spider.py     # Scrapy SitemapSpider — Protothema & Iefimerida
+│   ├── live_news_spider.py     # Scrapy SitemapSpider — Greek news sites
 │   ├── live_cleaner.py         # Cleans and filters scraped articles
+│   ├── run_pipeline.sh         # Scrape → clean in one go
 │   ├── kafka_feed.jsonl        # Cleaned output, ready for Kafka producer
-│   └── last_scraped_time.txt   # State file — tracks last successful scrape
+│   └── last_scraped_time.json  # State file — tracks last successful scrape
 │
 ├── backend/
-│   ├── server.js               # Express API + hourly cron pipeline orchestrator
+│   ├── server.js               # Express API + pipeline orchestrator
 │   ├── producer.py             # Kafka producer — publishes kafka_feed.jsonl to raw-articles
 │   ├── spark_processor.py      # Spark Structured Streaming — Kafka → inference → MongoDB
-│   ├── controllers/            # Article controller
-│   ├── models/                 # Mongoose article model
-│   ├── routes/                 # API routes
-│   └── config/db.js            # MongoDB connection
+│   ├── vllm_client.py          # Client for the vLLM-served Qwen + LoRA model
+│   └── qwen_analyzer.py        # On-demand URL analysis service
 │
-├── frontend/
-│   ├── src/App.tsx             # Main dashboard — live feed, bias meter, reasoning log
-│   └── ...                     # React + Vite + Tailwind + shadcn/ui
+├── frontend/                   # React + Vite + Tailwind + shadcn/ui dashboard
 │
-├── 1st_training_dump/
-│   ├── nemo_sft_train.jsonl    # NeMo SFT training split (2700 examples)
-│   ├── nemo_sft_val.jsonl      # NeMo SFT validation split (300 examples)
-│   ├── convert_to_nemo.ipynb   # Conversion notebook
-│   └── qwen_greek_lora_final.tar.gz  # Trained LoRA adapter weights
+├── docs/                       # Architecture, design decisions, pipeline diagram, final presentation
 │
-├── datasets/
-│   ├── final_unlabeled_dataset.json
-│   ├── labeled_dataset.json / .jsonl
-│   └── training/               # Training data variants
+├── old-dep/                    # Archive of the research & training phase (not needed to run)
+│   ├── 1st_training_dump/      # NeMo SFT splits + trained LoRA weights (qwen_greek_lora_final.tar.gz)
+│   ├── datasets/               # Labeled / unlabeled / synthetic training data
+│   ├── model_metrics/          # Benchmarks, F1 & confusion heatmap
+│   ├── scraper/                # Historical bulk scraper used for dataset collection
+│   ├── scripts/                # Labeling (Gemini), conversion & evaluation scripts
+│   ├── backend-unused/         # Earlier Mongoose routes/controllers (unused by server.js)
+│   └── misc/                   # Early notes and sample files
 │
-├── scraper/                    # Historical bulk scraper (used for dataset collection)
-├── api_label.py                # Gemini 2.5 Flash labeling service (training phase)
 ├── docker-compose.yml          # Kafka + Kafka UI
 └── requirements.txt
 ```

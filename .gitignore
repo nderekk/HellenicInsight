@@ -9,3 +9,4 @@ temp.py
 raw_news.json
 node_modules
 *.venv
+live_scraper/raw_news.jsonl
