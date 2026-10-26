@@ -2,19 +2,19 @@
   "E1_outlet_recognition": {
     "raw text": {
       "accuracy": 0.941,
-      "macro_f1": 0.696,
+      "macro_f1": 0.695,
       "f1 efsyn.gr": 0.946,
       "f1 iefimerida.gr": 0.189,
       "f1 protothema.gr": 0.952,
       "accuracy efsyn-vs-protothema": 0.956
     },
     "masked text": {
-      "accuracy": 0.912,
-      "macro_f1": 0.653,
-      "f1 efsyn.gr": 0.918,
-      "f1 iefimerida.gr": 0.119,
-      "f1 protothema.gr": 0.921,
-      "accuracy efsyn-vs-protothema": 0.927
+      "accuracy": 0.911,
+      "macro_f1": 0.652,
+      "f1 efsyn.gr": 0.917,
+      "f1 iefimerida.gr": 0.118,
+      "f1 protothema.gr": 0.92,
+      "accuracy efsyn-vs-protothema": 0.926
     },
     "title only": {
       "accuracy": 0.851,
@@ -91,10 +91,10 @@
       {
         "split": "held-out efsyn+protothema",
         "model": "TF-IDF ridge (rung 0)",
-        "spearman": 0.7,
+        "spearman": 0.698,
         "MAE": 0.079,
-        "within efsyn.gr": 0.654,
-        "within protothema.gr": 0.266
+        "within efsyn.gr": 0.651,
+        "within protothema.gr": 0.258
       },
       {
         "split": "held-out efsyn+protothema",
@@ -123,7 +123,7 @@
       {
         "split": "unseen: iefimerida",
         "model": "TF-IDF ridge (rung 0)",
-        "spearman": 0.206,
+        "spearman": 0.218,
         "MAE": 0.057,
         "within efsyn.gr": null,
         "within protothema.gr": null
