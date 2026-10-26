@@ -59,12 +59,13 @@ The backend also orchestrates the scraping pipeline automatically via a cron job
 ```
 HellenicInsight/
 │
-├── live_scraper/
-│   ├── live_news_spider.py     # Scrapy SitemapSpider — Greek news sites
-│   ├── live_cleaner.py         # Cleans and filters scraped articles
-│   ├── run_pipeline.sh         # Scrape → clean in one go
-│   ├── kafka_feed.jsonl        # Cleaned output, ready for Kafka producer
-│   └── last_scraped_time.json  # State file — tracks last successful scrape
+├── live_scraper/               # RSS/sitemap scraper — how it works: live_scraper/README.md
+│   ├── sites.toml              # One block per outlet: feeds, backfill, per-site cleanup
+│   ├── scraper.py              # CLI + pipeline (run / loop / backfill / reextract / health / stats / export)
+│   ├── net.py · discover.py · extract.py · store.py · health.py
+│   ├── run_pipeline.sh         # One pass + export for the Kafka producer
+│   ├── kafka_feed.jsonl        # (gitignored) exported articles, ready for Kafka producer
+│   └── data/                   # (gitignored) scraper.db + raw HTML
 │
 ├── backend/
 │   ├── server.js               # Express API + pipeline orchestrator
@@ -170,18 +171,17 @@ Dashboard available at `http://localhost:5173`.
 
 ### Manual Pipeline Run (optional)
 
+How the scraper works (feeds, sitemaps, storage, health checks): [`live_scraper/README.md`](live_scraper/README.md).
+
 To trigger the scraping pipeline manually without waiting for the cron:
 
 ```bash
-# 1. Scrape
-cd live_scraper
-scrapy runspider live_news_spider.py -O raw_news.json
+# 1. Scrape + export (from the repo root; deps: pip install -r live_scraper/requirements.txt)
+python -m live_scraper run
+python -m live_scraper export --hours 24
 
-# 2. Clean
-python live_cleaner.py
-
-# 3. Produce to Kafka
-cd ../backend
+# 2. Produce to Kafka
+cd backend
 python producer.py
 ```
 
