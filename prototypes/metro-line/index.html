@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoliticalBro · Metro Line</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@500;600;700&family=Fira+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--graphite:#1d2329;--graphite-2:#2b333b;--enamel:#f4f5f2;--ink:#1d2329;--mute:#4f565d;--rule:#c9ccc8;
+    --left:#d3302f;--center:#8a9096;--right:#1f5fae;--here:#f2c230;--sign-mute:#b9bfc4;--pad:clamp(16px,3.6vw,56px)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--enamel);scrollbar-color:var(--center) var(--enamel)}
+  body{background:var(--enamel);color:var(--ink);font:400 16px/1.4 "Fira Sans",sans-serif;font-variant-numeric:tabular-nums}
+  ::selection{background:var(--here);color:var(--ink)}
+  :focus-visible{outline:3px solid var(--here);outline-offset:2px}
+  a{color:inherit} button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+
+  header{background:var(--graphite);color:var(--enamel);padding:0 var(--pad);display:flex;align-items:center;gap:32px;min-height:120px}
+  .roundel{flex:none;width:44px;height:44px;border-radius:50%;border:5px solid var(--enamel);position:relative}
+  .roundel::after{content:"";position:absolute;left:-9px;right:-9px;top:14px;height:6px;background:var(--enamel)}
+  .name{font:700 34px/1 "Fira Sans Condensed";letter-spacing:-.01em;text-decoration:none}
+  .day{border-left:1px solid #48515a;padding-left:24px}
+  .day b{display:block;font:600 22px/1.15 "Fira Sans Condensed"}
+  .day span{font-size:15px;color:var(--sign-mute)}
+  nav{display:flex;gap:32px;margin-left:auto;align-items:center}
+  nav a{text-decoration:none;font:600 18px/1.1 "Fira Sans Condensed";padding:8px 0}
+  nav a small{display:block;font:400 13px "Fira Sans";color:var(--sign-mute)}
+  nav a[aria-current]{box-shadow:inset 0 -4px 0 var(--here)}
+  .lang{display:flex;border:1.5px solid #6b747c;border-radius:4px;overflow:hidden}
+  .lang button{padding:7px 11px;font:600 14px "Fira Sans Condensed";color:var(--sign-mute)}
+  .lang button[aria-pressed="true"]{background:var(--enamel);color:var(--graphite)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;padding:16px var(--pad);border-bottom:2px solid var(--ink);font-size:14px;color:var(--mute)}
+  .legend span{display:inline-flex;align-items:center;gap:8px}
+  .seg{display:inline-block;width:40px;height:6px}
+  .dot{width:16px;height:16px;border-radius:50%;background:var(--enamel);border:4px solid var(--ink)}
+  .ring{width:16px;height:16px;border-radius:50%;border:2.5px dashed var(--ink)}
+
+  main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:56px;padding:0 var(--pad) 56px}
+  .dep{border-bottom:1px solid var(--rule)}
+  .row{display:grid;grid-template-columns:84px minmax(0,1fr) minmax(260px,400px);gap:28px;align-items:center;width:100%;padding:22px 0}
+  .row:hover .h2,.row[aria-expanded="true"] .h2{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+  .t{font:600 28px/1 "Fira Sans Condensed"}
+  .t small{display:block;font:400 13px "Fira Sans";color:var(--mute);margin-top:6px}
+  .h2{display:block;font:600 20px/1.28 "Fira Sans";max-width:52ch}
+  .en{font-size:15px;color:var(--mute);margin-top:4px;max-width:60ch}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin-top:8px;font:500 13px "Fira Sans";color:var(--mute)}
+  .bs{color:var(--ink);font-weight:600;border:1.5px solid var(--ink);border-radius:3px;padding:2px 7px}
+  .line{position:relative;height:30px}
+  .line i{position:absolute;top:12px;height:6px}
+  .line .gap{background:repeating-linear-gradient(90deg,var(--center) 0 8px,transparent 8px 14px);height:3px;top:13.5px}
+  .st{position:absolute;top:5px;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:var(--enamel);border:5px solid var(--ink)}
+  .st.h{border:2.5px dashed var(--ink)}
+  .ends{display:flex;justify-content:space-between;margin-top:4px;font:600 12px "Fira Sans Condensed";letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+
+  .route{display:none;grid-template-columns:84px minmax(0,1fr);gap:28px;padding:0 0 26px}
+  .dep.open .route{display:grid}
+  .route ol{list-style:none;grid-column:2;position:relative;padding-left:40px;max-width:760px}
+  .route ol::before{content:"";position:absolute;left:12px;top:10px;bottom:10px;width:6px;background:linear-gradient(var(--left) 0 var(--l),var(--center) var(--l) var(--c),var(--right) var(--c))}
+  .route li{position:relative;padding:8px 0}
+  .route li::before{content:"";position:absolute;left:-37px;top:12px;width:12px;height:12px;border-radius:50%;background:var(--enamel);border:4px solid var(--ink)}
+  .route .o{font:700 15px "Fira Sans Condensed"}
+  .route .o span{font:500 13px "Fira Sans";color:var(--mute);margin-left:8px}
+  .route a{display:block;font-size:16px;text-decoration:none;max-width:70ch}
+  .route a:hover{text-decoration:underline}
+  .route .go{display:inline-block;margin-top:10px;font:600 15px "Fira Sans Condensed";background:var(--ink);color:var(--enamel);padding:10px 16px;border-radius:3px;text-decoration:none}
+
+  aside{padding-top:26px}
+  aside h3{font:700 22px/1.1 "Fira Sans Condensed"}
+  aside p{font-size:14px;color:var(--mute);margin-top:4px}
+  aside ol{list-style:none;margin-top:16px;border-top:2px solid var(--ink)}
+  aside li{border-bottom:1px solid var(--rule)}
+  aside li button{display:block;width:100%;padding:16px 0}
+  aside li b{display:block;font:500 16px/1.35 "Fira Sans"}
+  aside li span{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:13px;color:var(--mute)}
+  aside li button:hover b{text-decoration:underline}
+  .foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:0 var(--pad) 32px;font-size:13px;color:var(--mute)}
+  .foot b{font-weight:600;color:var(--ink);background:var(--here);padding:2px 6px}
+
+  @media (max-width:960px){
+    header{flex-wrap:wrap;gap:14px 20px;padding-top:16px;padding-bottom:12px;min-height:0}
+    .day{border:0;padding:0;width:100%;order:3}
+    nav{order:4;width:100%;margin-left:0;gap:24px;overflow-x:auto}
+    .lang{margin-left:auto}
+    main{grid-template-columns:1fr;gap:0}
+    .row{grid-template-columns:60px minmax(0,1fr);row-gap:14px}
+    .row .line-wrap{grid-column:1/-1}
+    .t{font-size:22px}
+    .route{grid-template-columns:1fr}
+    .route ol{grid-column:1}
+  }
+</style>
+</head>
+<body>
+<header>
+  <span class="roundel" aria-hidden="true"></span>
+  <a class="name" href="#">PoliticalBro</a>
+  <div class="day"><b data-i="date"></b><span id="dayline"></span></div>
+  <nav aria-label="Κύρια"><a href="#" aria-current="page"><span data-i="events"></span><small data-a="events"></small></a><a href="#blind"><span data-i="blind"></span><small data-a="blind"></small></a><a href="#"><span data-i="method"></span><small data-a="method"></small></a></nav>
+  <div class="lang" role="group" aria-label="Γλώσσα / Language"><button type="button" data-lang="el">ΕΛ</button><button type="button" data-lang="en">EN</button></div>
+</header>
+<div class="legend" id="legend"></div>
+<main>
+  <section id="deps" aria-label="Γεγονότα"></section>
+  <aside id="blind" aria-labelledby="bh"><h3 id="bh"></h3><p id="blede"></p><ol id="blist"></ol></aside>
+</main>
+<p class="foot"><span id="counted"></span><b id="sample"></b></p>
+<script src="../shared/data.js"></script>
+<script>
+const {EVENTS,T,side,count,outlets,blind,esc,short,head,sub,initialLang} = PB;
+let lang = initialLang, open = null;
+const other = () => lang==="el" ? "en" : "el";
+const zoneColor = {L:"var(--left)",C:"var(--center)",R:"var(--right)"};
+function line(e){
+  const c=count(e), b=blind(e);
+  const z = (s,l,w) => b.includes(s) ? `<i class="gap" style="left:${l}%;width:${w}%"></i>` : `<i style="left:${l}%;width:${w}%;background:${zoneColor[s]}"></i>`;
+  const hollow = b.map(s=>`<b class="st h" style="left:${s==="L"?20:80}%" title="${esc(T[lang].none(s))}"></b>`).join("");
+  return `<div class="line" role="img" aria-label="${T[lang].L} ${c.L}, ${T[lang].C} ${c.C}, ${T[lang].R} ${c.R}">${z("L",0,40)}${z("C",40,20)}${z("R",60,40)}${e.arts.map(a=>`<b class="st" style="left:${a[1]*100}%"></b>`).join("")}${hollow}</div>
+    <div class="ends"><span>${T[lang].Ls}</span><span>${T[lang].Cs}</span><span>${T[lang].Rs}</span></div>`;
+}
+function ago(time){ const [h,m]=time.split(":").map(Number); const d=(14*60+20)-(h*60+m); return lang==="el" ? (d<60?`πριν ${d}′`:`πριν ${Math.round(d/60)} ώρ.`) : (d<60?`${d} min ago`:`${Math.round(d/60)} h ago`); }
+function render(){
+  const t=T[lang];
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i]").forEach(n=>n.textContent=t[n.dataset.i]);
+  document.querySelectorAll("[data-a]").forEach(n=>n.textContent=T[other()][n.dataset.a]);
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang));
+  document.getElementById("dayline").textContent = `${T[other()].date} · ${EVENTS.length} ${lang==="el"?"γεγονότα":"events"}`;
+  document.getElementById("legend").innerHTML = `<span><i class="seg" style="background:var(--left)"></i>${t.L} · ${T[other()].L}</span><span><i class="seg" style="background:var(--center)"></i>${t.C} · ${T[other()].C}</span><span><i class="seg" style="background:var(--right)"></i>${t.R} · ${T[other()].R}</span><span><i class="dot"></i>${lang==="el"?"άρθρο · article":"article · άρθρο"}</span><span><i class="ring"></i>${lang==="el"?"καμία κάλυψη · no coverage":"no coverage · καμία κάλυψη"}</span>`;
+  document.getElementById("deps").innerHTML = EVENTS.slice().reverse().map(e=>{
+    const b=blind(e), c=count(e), arts=e.arts.slice().sort((x,y)=>x[1]-y[1]), n=e.arts.length;
+    return `<div class="dep${open===e.id?" open":""}">
+      <button type="button" class="row" data-ev="${e.id}" aria-expanded="${open===e.id}" aria-controls="r-${e.id}">
+        <span class="t">${e.time}<small>${ago(e.time)}</small></span>
+        <span><span class="h2">${esc(head(e,lang))}</span><span class="en" lang="${other()}" style="display:block">${esc(sub(e,lang))}</span>
+          <span class="meta"><span>${t.articles(n)} · ${t.outlets(outlets(e))}</span>${b.map(s=>`<span class="bs">${lang==="el"?"Τυφλό σημείο":"Blindspot"} · ${t.none(s)}</span>`).join("")}</span></span>
+        <span class="line-wrap">${line(e)}</span>
+      </button>
+      <div class="route" id="r-${e.id}"><ol style="--l:${c.L/n*100}%;--c:${(c.L+c.C)/n*100}%">${arts.map(a=>`<li><p class="o">${short(a[0])}<span>${a[1].toFixed(2)} ±${a[2].toFixed(2).slice(1)}</span></p><a href="#" lang="el">${esc(a[3])}</a></li>`).join("")}
+        <li><a class="go" href="#">${t.open}</a></li></ol></div>
+    </div>`; }).join("");
+  document.getElementById("bh").textContent = lang==="el" ? "Τυφλά σημεία σήμερα" : "Today's blindspots";
+  document.getElementById("blede").textContent = t.blindLede;
+  document.getElementById("blist").innerHTML = EVENTS.filter(e=>blind(e).length).map(e=>`<li><button type="button" data-ev="${e.id}"><b>${esc(head(e,lang))}</b><span><i class="ring" aria-hidden="true"></i>${t.none(blind(e)[0])}</span></button></li>`).join("");
+  document.getElementById("counted").textContent = t.counted;
+  document.getElementById("sample").textContent = t.sample;
+}
+document.addEventListener("click", ev=>{
+  const l=ev.target.closest("[data-lang]"); if(l){ lang=l.dataset.lang; render(); return; }
+  const e=ev.target.closest("[data-ev]"); if(e){ ev.preventDefault(); const id=e.dataset.ev; open = open===id ? null : id; render();
+    if(e.closest("aside")) document.querySelector(`[data-ev="${id}"].row`).scrollIntoView({block:"start",behavior:PB.still?"auto":"smooth"}); }
+});
+open = EVENTS[EVENTS.length-1].id;
+render();
+</script>
+</body>
+</html>

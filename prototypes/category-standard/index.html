@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoliticalBro · Category Standard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f4f5f7;--card:#ffffff;--ink:#111827;--mute:#4b5563;--rule:#e5e7eb;--left:#d3302f;--center:#9ca3af;--right:#1f5fae;--accent:#111827;--pad:clamp(16px,3.4vw,48px)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--bg)}
+  body{background:var(--bg);color:var(--ink);font:400 16px/1.45 "Source Sans 3",sans-serif;font-variant-numeric:tabular-nums}
+  ::selection{background:#dbe4f3}
+  :focus-visible{outline:3px solid var(--right);outline-offset:2px}
+  a{color:inherit;text-decoration:none} button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+  header{background:var(--card);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:2}
+  .top{display:flex;align-items:center;gap:28px;height:64px;padding:0 var(--pad)}
+  .name{font:800 24px "Source Sans 3";letter-spacing:-.01em}
+  .top nav{display:flex;gap:24px;font:600 15px "Source Sans 3";color:var(--mute)}
+  .top nav a[aria-current]{color:var(--ink)}
+  .lang{margin-left:auto;display:flex;background:var(--bg);border-radius:999px;padding:3px}
+  .lang button{padding:5px 12px;border-radius:999px;font:700 13px "Source Sans 3";color:var(--mute)}
+  .lang button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(17,24,39,.15)}
+  .tabs{display:flex;gap:8px;padding:0 var(--pad) 12px;overflow-x:auto}
+  .tabs button{padding:6px 14px;border-radius:999px;border:1px solid var(--rule);font:600 14px "Source Sans 3";color:var(--mute);white-space:nowrap}
+  .tabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+  main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;padding:24px var(--pad) 48px;max-width:1440px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--rule);border-radius:12px;transition:box-shadow .2s,border-color .2s}
+  a.card:hover{border-color:#cbd0d8;box-shadow:0 6px 16px -8px rgba(17,24,39,.25)}
+  .lead{display:block;padding:28px}
+  .meta{display:flex;flex-wrap:wrap;gap:4px 12px;font:600 13px "Source Sans 3";color:var(--mute)}
+  .meta .topic{color:var(--ink)}
+  .lead h1{font:800 clamp(26px,2.6vw,36px)/1.15 "Source Sans 3";margin-top:8px;max-width:30ch}
+  .lead .en{color:var(--mute);margin-top:6px}
+  .cov{display:flex;height:28px;border-radius:6px;overflow:hidden;margin-top:18px;font:700 13px/28px "Source Sans 3";color:#fff}
+  .cov span{padding:0 10px;white-space:nowrap;overflow:hidden}
+  .cov .L{background:var(--left)} .cov .C{background:var(--center);color:var(--ink)} .cov .R{background:var(--right)}
+  .srcs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+  .srcs h3{font:700 12px "Source Sans 3";text-transform:uppercase;letter-spacing:.06em;padding-bottom:6px;border-bottom:3px solid}
+  .srcs li{list-style:none;padding:8px 0;border-bottom:1px solid var(--rule);font-size:14px;line-height:1.3}
+  .srcs li b{display:block;font-size:12px;color:var(--mute)}
+  .srcs .none{color:var(--mute);font-style:italic}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:16px}
+  .ev{display:flex;flex-direction:column;padding:18px}
+  .ev h2{font:700 17px/1.3 "Source Sans 3";margin:6px 0 14px}
+  .ev .cov{height:8px;margin-top:auto;border-radius:4px}
+  .ev .pct{display:flex;justify-content:space-between;margin-top:6px;font:600 12px "Source Sans 3";color:var(--mute)}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;font:700 12px "Source Sans 3";background:#111827;color:#fff}
+  .badge i{width:8px;height:8px;border-radius:50%}
+  aside .card{padding:20px}
+  aside h2{font:800 18px "Source Sans 3"}
+  aside p.lede{font-size:14px;color:var(--mute);margin-top:4px}
+  aside li{list-style:none;border-top:1px solid var(--rule);padding:14px 0}
+  aside li:first-of-type{margin-top:12px}
+  aside li a{font:700 15px/1.3 "Source Sans 3"} aside li a:hover{text-decoration:underline}
+  aside li span{display:block;margin-top:4px;font-size:13px;color:var(--mute)}
+  .note{margin-top:16px;font-size:13px;color:var(--mute)}
+  .note b{color:var(--ink)}
+  @media (max-width:960px){
+    .top{gap:16px} .top nav{display:none}
+    main{grid-template-columns:1fr}
+    .lead{padding:20px}
+    .srcs{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><a class="name" href="#">PoliticalBro</a>
+    <nav aria-label="Κύρια"><a href="#" aria-current="page" data-i="events"></a><a href="#" data-i="blind"></a><a href="#" data-i="method"></a></nav>
+    <div class="lang" role="group" aria-label="Γλώσσα / Language"><button type="button" data-lang="el">ΕΛ</button><button type="button" data-lang="en">EN</button></div></div>
+  <div class="tabs" id="tabs" role="group" aria-label="Θέματα / Topics"></div>
+</header>
+<main>
+  <section>
+    <a class="card lead" href="#" id="lead"></a>
+    <div class="grid" id="grid"></div>
+  </section>
+  <aside><div class="card"><h2 data-i="blind"></h2><p class="lede" data-i="blindLede"></p><ul id="blist"></ul></div>
+    <p class="note"><b data-i="sampleShort"></b> · <span data-i="basis"></span></p></aside>
+</main>
+<script src="../shared/data.js"></script>
+<script>
+const {EVENTS,T,side,count,outlets,blind,esc,short,head,sub,initialLang} = PB;
+let lang = initialLang, topic = "all";
+const other = () => lang==="el" ? "en" : "el";
+const pct = e => { const c=count(e), n=e.arts.length; return {L:Math.round(c.L/n*100),C:Math.round(c.C/n*100),R:Math.round(c.R/n*100)}; };
+const bar = (e,labels) => { const p=pct(e); return `<div class="cov" role="img" aria-label="${T[lang].L} ${p.L}%, ${T[lang].C} ${p.C}%, ${T[lang].R} ${p.R}%">${["L","C","R"].filter(s=>p[s]).map(s=>`<span class="${s}" style="width:${p[s]}%">${labels?`${T[lang][s]} ${p[s]}%`:""}</span>`).join("")}</div>`; };
+const badge = e => blind(e).map(s=>`<span class="badge"><i style="background:${s==="L"?"var(--left)":"var(--right)"}"></i>${lang==="el"?"Τυφλό σημείο":"Blindspot"}</span>`).join("");
+function render(){
+  const t=T[lang];
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i]").forEach(n=>n.textContent=t[n.dataset.i]);
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang));
+  document.getElementById("tabs").innerHTML = ["all","pol","soc","eco"].map(k=>`<button type="button" data-topic="${k}" aria-pressed="${topic===k}">${k==="all"?t.all:t.topics[k]}</button>`).join("");
+  const list = EVENTS.filter(e=>topic==="all"||e.topic===topic).slice().sort((a,b)=>b.arts.length-a.arts.length);
+  const e = list[0], rest = list.slice(1);
+  const col = s => { const arts=e.arts.filter(a=>side(a[1])===s); return `<div><h3 style="border-color:var(--${{L:"left",C:"center",R:"right"}[s]})">${t[s]} · ${arts.length}</h3><ul>${arts.slice(0,3).map(a=>`<li><b>${short(a[0])}</b>${esc(a[3])}</li>`).join("") || `<li class="none">${esc(t.none(s))}</li>`}</ul></div>`; };
+  document.getElementById("lead").innerHTML = `<p class="meta"><span class="topic">${t.topics[e.topic]}</span><span>${t.outlets(outlets(e))}</span><span>${t.articles(e.arts.length)}</span><span>${e.time}</span>${badge(e)}</p>
+    <h1>${esc(head(e,lang))}</h1><p class="en" lang="${other()}">${esc(sub(e,lang))}</p>${bar(e,true)}<div class="srcs">${col("L")}${col("C")}${col("R")}</div>`;
+  document.getElementById("grid").innerHTML = rest.map(e=>{ const p=pct(e); return `<a class="card ev" href="#"><p class="meta"><span class="topic">${t.topics[e.topic]}</span><span>${t.outlets(outlets(e))}</span>${badge(e)}</p><h2>${esc(head(e,lang))}</h2>${bar(e,false)}<p class="pct"><span>${t.Ls} ${p.L}%</span><span>${t.Cs} ${p.C}%</span><span>${t.Rs} ${p.R}%</span></p></a>`; }).join("");
+  document.getElementById("blist").innerHTML = EVENTS.filter(e=>blind(e).length).map(e=>`<li><a href="#">${esc(head(e,lang))}</a><span>${t.none(blind(e)[0])}</span></li>`).join("");
+}
+document.addEventListener("click", ev=>{
+  const l=ev.target.closest("[data-lang]"); if(l){ lang=l.dataset.lang; render(); return; }
+  const k=ev.target.closest("[data-topic]"); if(k){ topic=k.dataset.topic; render(); }
+});
+render();
+</script>
+</body>
+</html>

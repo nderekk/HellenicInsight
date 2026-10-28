@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoliticalBro · Front-page prototypes</title>
+<style>
+  :root{--bg:#f4f4f2;--ink:#141414;--mute:#555;--rule:#d6d6d2;--left:#d3302f;--right:#1f5fae}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:400 16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:48px clamp(16px,5vw,72px)}
+  :focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.01em}
+  .lede{color:var(--mute);margin-top:6px;max-width:68ch}
+  ol{list-style:none;margin-top:32px;border-top:2px solid var(--ink)}
+  li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 32px;align-items:center;padding:20px 0;border-bottom:1px solid var(--rule)}
+  li h2{font-size:20px;font-weight:700}
+  li p{color:var(--mute);max-width:72ch;margin-top:2px}
+  .links{display:flex;gap:10px;flex-wrap:wrap}
+  .links a{color:var(--ink);font-weight:600;font-size:14px;text-decoration:none;border:1.5px solid var(--ink);padding:8px 12px;border-radius:4px}
+  .links a:first-child{background:var(--ink);color:var(--bg)}
+  .links a:hover{background:var(--ink);color:var(--bg)}
+  .foot{margin-top:24px;font-size:14px;color:var(--mute)}
+  @media (max-width:700px){ li{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+  <h1>PoliticalBro front-page prototypes</h1>
+  <p class="lede">Five takes on the same front page, all fed by the same synthetic news day (<code>shared/data.js</code>), so you can compare them like for like. Each one has a working Greek / English toggle.</p>
+  <ol>
+    <li><div><h2>Election Night</h2><p>The news day as a results broadcast on a midnight-navy field: a results board for the lead event, outlet rows with swing bars, blindspots panel and a scrolling ticker. Built and reviewed.</p></div>
+      <div class="links"><a href="front-page/index.html">Open</a><a href="front-page/index.html?still">Still</a></div></li>
+    <li><div><h2>Metro Line</h2><p>Athens Metro wayfinding: Greek over English sign panels, each event a departure with its own Left-to-Right line, articles as stations, hollow rings where a side stayed silent. Click an event to open its stops.</p></div>
+      <div class="links"><a href="metro-line/index.html">Open</a><a href="metro-line/index.html?lang=en">English</a></div></li>
+    <li><div><h2>Counting Sheet</h2><p>The polling-station counting sheet on white paper with a kraft band, now without tally marks: big counted numerals per side, a hatched zero box for a blindspot, and a cross on events you've opened.</p></div>
+      <div class="links"><a href="counting-sheet/index.html">Open</a><a href="counting-sheet/index.html?lang=en">English</a></div></li>
+    <li><div><h2>Category Standard</h2><p>The Ground News-style aggregator played straight: a top-story card with a percentage coverage bar and sources per side, a card grid with topic filters, and a blindspot rail.</p></div>
+      <div class="links"><a href="category-standard/index.html">Open</a><a href="category-standard/index.html?lang=en">English</a></div></li>
+    <li><div><h2>Dance Score <span style="font-size:14px;font-weight:600;color:var(--mute)">bolder</span></h2><p>A Labanotation-style score: one vertical centre staff, left-leaning articles as symbols to its left and right-leaning ones to its right, distance from the axis is lean, shading is certainty, a hold sign marks silence. Hover a symbol to read it.</p></div>
+      <div class="links"><a href="dance-score/index.html">Open</a><a href="dance-score/index.html?still">Still</a></div></li>
+  </ol>
+  <p class="foot">All headlines and scores are invented sample data, not real coverage.</p>
+</body>
+</html>

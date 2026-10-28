@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoliticalBro · Counting Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;800;900&family=Noto+Sans+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#ffffff;--ink:#111111;--kraft:#c9b48f;--kraft-deep:#8a7348;--left:#c62a29;--center:#5f656b;--right:#1f5fae;--mute:#4a4a4a;--pad:clamp(16px,3.6vw,56px)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--paper);scrollbar-color:var(--ink) var(--paper)}
+  body{background:var(--paper);color:var(--ink);font:400 16px/1.4 "Commissioner",sans-serif}
+  ::selection{background:var(--kraft);color:var(--ink)}
+  :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+  a{color:inherit;text-underline-offset:3px} button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+  .num{font-family:"Noto Sans Mono",monospace;font-variant-numeric:tabular-nums}
+
+  header{background:var(--kraft);border-bottom:3px solid var(--ink);padding:0 var(--pad);min-height:104px;display:flex;align-items:center;gap:32px}
+  .name{font:900 38px/1 "Commissioner";letter-spacing:-.02em;text-decoration:none}
+  .name small{display:block;font:500 14px "Commissioner";letter-spacing:0;margin-top:6px}
+  nav{display:flex;gap:30px;margin-left:auto;font:600 17px "Commissioner"}
+  nav a{text-decoration:none;padding:6px 0}
+  nav a small{display:block;font:400 13px "Commissioner";color:#3d3424;margin-top:8px}
+  nav a[aria-current] span{text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:6px}
+  .lang{display:flex;border:2px solid var(--ink)}
+  .lang button{padding:6px 10px;font:700 14px "Commissioner"}
+  .lang button[aria-pressed="true"]{background:var(--ink);color:var(--kraft)}
+
+  .sheet{padding:28px var(--pad) 40px;max-width:1440px}
+  .formhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px 24px;border-bottom:3px solid var(--ink);padding-bottom:12px}
+  h1{font:800 30px/1.1 "Commissioner"}
+  h1 small{font:500 16px "Commissioner";color:var(--mute);margin-left:12px}
+  .tot{font:700 15px "Noto Sans Mono"}
+  .grid{display:grid;grid-template-columns:76px minmax(0,1fr) repeat(3,116px) 84px;column-gap:0;align-items:stretch}
+  .cols{font:700 12px "Commissioner";letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid var(--ink)}
+  .cols span{padding:10px 12px}
+  .cols span:nth-child(n+3){text-align:center;border-left:1px solid var(--ink)}
+  .block{font:800 13px "Commissioner";letter-spacing:.1em;text-transform:uppercase;padding:28px 0 8px;border-bottom:2px solid var(--ink)}
+  .block small{font:500 13px "Commissioner";letter-spacing:0;text-transform:none;color:var(--mute);margin-left:8px}
+  .row{width:100%;border-bottom:1px solid var(--ink)}
+  .row > span{padding:14px 12px;display:flex;flex-direction:column;justify-content:center}
+  .row > span:first-child{padding-left:0}
+  .row .t{font:700 17px "Noto Sans Mono"}
+  .row .h b{font:600 18px/1.25 "Commissioner"}
+  .row .h small{font-size:14px;color:var(--mute);margin-top:3px}
+  .row:hover .h b,.row[aria-expanded="true"] .h b{text-decoration:underline;text-decoration-thickness:2px}
+  .row .c{border-left:1px solid var(--ink);align-items:center;font:700 34px/1 "Noto Sans Mono"}
+  .row .c.z{background:repeating-linear-gradient(135deg,transparent 0 7px,rgba(17,17,17,.09) 7px 8px)}
+  .row .c.z em{font-style:normal;font:800 10px/1.2 "Commissioner";letter-spacing:.08em;text-transform:uppercase;border:2px solid currentColor;padding:2px 5px;margin-top:6px}
+  .row .n{border-left:2px solid var(--ink);align-items:flex-end;font:700 20px "Noto Sans Mono"}
+  .row .n small{font:500 11px "Commissioner";color:var(--mute)}
+  .x{display:inline-block;position:relative;width:20px;height:20px;margin-left:10px;vertical-align:-3px}
+  .x::before,.x::after{content:"";position:absolute;left:8px;top:-3px;width:3px;height:26px;background:var(--ink);transform:rotate(42deg)}
+  .x::after{transform:rotate(-38deg)}
+
+  .detail{display:none;border-bottom:2px solid var(--ink);background:#faf8f3}
+  .detail.open{display:grid;grid-template-columns:minmax(200px,1fr) repeat(3,minmax(0,1.4fr))}
+  .detail .lab{padding:16px 16px 16px 0}
+  .detail .lab a{display:inline-block;font:700 15px "Commissioner";background:var(--ink);color:var(--paper);padding:10px 14px;text-decoration:none}
+  .detail .lab p{font-size:13px;color:var(--mute);margin-top:10px;max-width:42ch}
+  .detail ul{list-style:none;border-left:1px solid var(--ink);padding:12px 10px}
+  .detail li{font-size:14px;line-height:1.3;padding:6px 0;border-bottom:1px dotted #8a8a8a}
+  .detail li:last-child{border:0}
+  .detail li b{display:block;font:700 12px "Noto Sans Mono"}
+  .detail li a{text-decoration:none} .detail li a:hover{text-decoration:underline}
+
+  .foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-top:28px;padding-top:14px;border-top:3px solid var(--ink);font-size:14px}
+  .sign{font:500 14px "Commissioner"}
+  .sign b{font-family:"Noto Sans Mono"}
+  .sample{font:700 12px "Commissioner";letter-spacing:.06em;text-transform:uppercase;border:2px dashed var(--ink);padding:4px 8px}
+
+  @media (max-width:900px){
+    header{flex-wrap:wrap;gap:12px 20px;padding-top:16px;padding-bottom:12px}
+    nav{order:3;width:100%;margin-left:0;overflow-x:auto}
+    .lang{margin-left:auto}
+    h1{font-size:26px} h1 small{display:block;margin:4px 0 0}
+    .grid{grid-template-columns:repeat(3,1fr) 64px}
+    .cols span:nth-child(-n+2){display:none}
+    .cols span:nth-child(3){border-left:0}
+    .row > span.t{display:none}
+    .row .h{grid-column:1/-1;padding-left:0!important;border-bottom:1px dashed #8a8a8a}
+    .row .h b::before{content:attr(data-time) "  ";font:700 15px "Noto Sans Mono"}
+    .row .c:nth-of-type(3){border-left:0}
+    .row .c{font-size:28px}
+    .detail.open{grid-template-columns:1fr}
+    .detail ul{border-left:0;border-top:1px solid var(--ink)}
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="name" href="#">PoliticalBro<small data-i="date"></small></a>
+  <nav aria-label="Κύρια"><a href="#" aria-current="page"><span data-i="events"></span><small data-a="events"></small></a><a href="#"><span data-i="blind"></span><small data-a="blind"></small></a><a href="#"><span data-i="method"></span><small data-a="method"></small></a></nav>
+  <div class="lang" role="group" aria-label="Γλώσσα / Language"><button type="button" data-lang="el">ΕΛ</button><button type="button" data-lang="en">EN</button></div>
+</header>
+<main class="sheet">
+  <div class="formhead"><h1><span id="title"></span><small id="subtitle"></small></h1><span class="tot" id="tot"></span></div>
+  <div class="grid cols" id="cols"></div>
+  <div id="rows"></div>
+  <div class="foot"><span class="sign" id="sign"></span><span class="sample" id="sample"></span></div>
+</main>
+<script src="../shared/data.js"></script>
+<script>
+const {EVENTS,T,side,count,outlets,blind,esc,short,head,sub,initialLang} = PB;
+let lang = initialLang, open = "opekepe"; const read = new Set(["opekepe"]);
+const other = () => lang==="el" ? "en" : "el";
+const col = {L:"var(--left)",C:"var(--center)",R:"var(--right)"};
+const blocks = [["morning",0,11*60],["midday",11*60,14*60],["afternoon",14*60,24*60]];
+const names = {el:{morning:["Πρωί","Morning"],midday:["Μεσημέρι","Midday"],afternoon:["Απόγευμα","Afternoon"]},en:{morning:["Morning","Πρωί"],midday:["Midday","Μεσημέρι"],afternoon:["Afternoon","Απόγευμα"]}};
+const mins = t => { const [h,m]=t.split(":").map(Number); return h*60+m; };
+function rowHTML(e){
+  const t=T[lang], c=count(e), b=blind(e);
+  const cell = s => b.includes(s)
+    ? `<span class="c z" style="color:${col[s]}" title="${esc(t.none(s))}">0<em>${lang==="el"?"Τυφλό σημείο":"Blindspot"}</em></span>`
+    : `<span class="c" style="color:${col[s]}">${c[s]}</span>`;
+  const list = s => `<ul aria-label="${t[s]}">${e.arts.filter(a=>side(a[1])===s).sort((x,y)=>x[1]-y[1]).map(a=>`<li><b>${short(a[0])} ${a[1].toFixed(2)}±${a[2].toFixed(2).slice(1)}</b><a href="#" lang="el">${esc(a[3])}</a></li>`).join("") || `<li>${esc(t.none(s))}</li>`}</ul>`;
+  return `<button type="button" class="grid row" data-ev="${e.id}" aria-expanded="${open===e.id}" aria-controls="d-${e.id}">
+      <span class="t">${e.time}</span>
+      <span class="h"><b data-time="${e.time}">${esc(head(e,lang))}${read.has(e.id)?`<span class="x" role="img" aria-label="${lang==="el"?"Διαβάσατε":"Read"}"></span>`:""}</b><small lang="${other()}">${esc(sub(e,lang))}</small></span>
+      ${cell("L")}${cell("C")}${cell("R")}
+      <span class="n">${e.arts.length}<small>${lang==="el"?"άρθρα":"articles"}</small></span>
+    </button>
+    <div class="grid detail${open===e.id?" open":""}" id="d-${e.id}">
+      <div class="lab"><a href="#">${t.open}</a><p>${t.basis}</p></div>${list("L")}${list("C")}${list("R")}
+    </div>`;
+}
+function render(){
+  const t=T[lang];
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i]").forEach(n=>n.textContent=t[n.dataset.i]);
+  document.querySelectorAll("[data-a]").forEach(n=>n.textContent=T[other()][n.dataset.a]);
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang));
+  document.getElementById("title").textContent = lang==="el" ? "Φύλλο καταμέτρησης" : "Counting sheet";
+  document.getElementById("subtitle").textContent = lang==="el" ? "Ποιος κάλυψε τι σήμερα" : "Who covered what today";
+  document.getElementById("tot").textContent = `${EVENTS.length} ${lang==="el"?"γεγονότα":"events"} · ${t.articles(EVENTS.reduce((n,e)=>n+e.arts.length,0))} · ${t.outlets(8)}`;
+  document.getElementById("cols").innerHTML = `<span>${lang==="el"?"Ώρα":"Time"}</span><span>${lang==="el"?"Γεγονός":"Event"}</span><span style="color:var(--left)">${t.L}</span><span style="color:var(--center)">${t.C}</span><span style="color:var(--right)">${t.R}</span><span style="text-align:right;border-left:2px solid var(--ink)">${lang==="el"?"Σύνολο":"Total"}</span>`;
+  document.getElementById("rows").innerHTML = blocks.map(([k,a,z])=>{
+    const evs = EVENTS.filter(e=>mins(e.time)>=a && mins(e.time)<z);
+    return evs.length ? `<p class="block">${names[lang][k][0]}<small lang="${other()}">${names[lang][k][1]}</small></p>${evs.map(rowHTML).join("")}` : "";
+  }).join("");
+  document.getElementById("sign").innerHTML = `${t.counted.replace("14:20","<b>14:20</b>")}`;
+  document.getElementById("sample").textContent = t.sample;
+}
+document.addEventListener("click", ev=>{
+  const l=ev.target.closest("[data-lang]"); if(l){ lang=l.dataset.lang; render(); return; }
+  const r=ev.target.closest("[data-ev]"); if(r){ const id=r.dataset.ev; open = open===id ? null : id; if(open) read.add(id); render(); }
+});
+render();
+</script>
+</body>
+</html>
