@@ -1,0 +1,99 @@
+# Outlets the scraper polls. One [[site]] block per outlet.
+#
+# To add an outlet: copy a block, set `name` and `feeds`, then run
+#   python -m live_scraper run --sites <name>
+#   python -m live_scraper health
+# Every other key is optional; defaults are in [defaults] below.
+#
+# Per-site keys
+#   feeds          RSS/Atom or sitemap URLs polled on every run
+#   backfill       URLs used by `backfill` for older articles; "{page}" is replaced by 1, 2, 3...
+#   url_include    regex; only matching article URLs are kept
+#   url_exclude    regex; matching article URLs are skipped
+#   section_regex  regex with one group that captures the section from the URL (default: first path segment)
+#   opinion_regex  extra regex marking opinion URLs (on top of the built-in /apopseis/, /gnomes/, ...)
+#   prune_xpath    XPath list of page elements removed before extraction (pop-ups, "read also" boxes)
+#   strip          regex list removed from the extracted text (case-sensitive)
+#   allow_phrases  phrases the repeated-phrase check should accept for this outlet
+#   enabled        false keeps the block but skips the outlet
+
+[settings]
+user_agent = "HellenicInsightBot/0.1 (research; +https://github.com/nderekk/HellenicInsight)"
+data_dir = "live_scraper/data"     # relative to the repo root; holds scraper.db and raw/
+loop_minutes = 15                  # `loop` interval; feeds hold ~10–100 items, so keep it well under an hour
+raw_keep_days = 30                 # `prune` (run daily by `loop`) deletes older raw HTML; text in the DB is kept
+catchup_max_days = 3               # `loop` startup fills the gap since the last fetch, but at most this far back...
+catchup_limit = 500                # ...and at most this many articles per site (~25 min at 3 s each)
+
+[defaults]
+delay_seconds = 3.0                # min gap between requests to one site; a larger robots.txt Crawl-delay wins
+min_words = 50                     # shorter extractions are stored but marked not ok
+max_new_per_run = 200              # cap on article downloads per site per live run
+stale_hours = 12                   # health fails if no new good article for this long
+url_exclude = "/(video|videos|gallery|galleries|photos|podcasts?|tag|tags|author|category)/"
+
+# ── Left / opposition ────────────────────────────────────────────────────────
+
+[[site]]
+name = "efsyn.gr"
+feeds = ["https://www.efsyn.gr/feed/"]
+backfill = ["https://www.efsyn.gr/feed/?paged={page}"]
+
+[[site]]
+name = "thepressproject.gr"
+feeds = ["https://thepressproject.gr/feed/"]                   # only 10 items: keep loop_minutes short
+backfill = ["https://thepressproject.gr/feed/?paged={page}"]
+
+# ── Public broadcaster / centre ──────────────────────────────────────────────
+
+[[site]]
+name = "ertnews.gr"
+feeds = ["https://www.ertnews.gr/feed/"]
+backfill = ["https://www.ertnews.gr/feed/?paged={page}"]
+section_regex = '/([^/]+)/[^/]+/?$'                            # /eidiseis/ellada/politiki/<slug>/ -> politiki
+strip = ['(?s)(Όλες οι\s+Ειδήσεις\s+από την|Διάβασε όλες τις ειδήσεις μας|Κάνε like στη σελίδα μας).*$']   # social/"cite us" footer
+allow_phrases = ["Πηγή"]                                       # "Πηγή: ΑΠΕ-ΜΠΕ, AFP" wire credits: real sourcing info, mask later for models
+
+# ── Pro-government / right ───────────────────────────────────────────────────
+
+[[site]]
+name = "protothema.gr"
+feeds = ["https://www.protothema.gr/rss"]
+backfill = ["https://www.protothema.gr/sitemap/NewsArticles/sitemap_index.xml"]
+strip = [
+    '\bΚλείσιμο\b',                         # "Close" button of the inline "read also" pop-up (in 40% of the old scrapes)
+    '(?m)^Διαβάστε περισσότερα.*$',          # cross-promotion: "Διαβάστε περισσότερα στο marieclaire.gr / newmoney.gr"
+]
+
+[[site]]
+name = "iefimerida.gr"
+feeds = ["https://www.iefimerida.gr/rss.xml"]
+backfill = ["https://www.iefimerida.gr/sitemap.xml"]
+
+# ── Verified but off (turn on to widen the spectrum, roadmap Step 2.1) ───────
+
+[[site]]
+name = "naftemporiki.gr"
+enabled = false
+feeds = ["https://www.naftemporiki.gr/feed/"]
+backfill = ["https://www.naftemporiki.gr/feed/?paged={page}"]
+
+[[site]]
+name = "tanea.gr"
+enabled = false
+feeds = ["https://www.tanea.gr/feed/"]
+backfill = ["https://www.tanea.gr/feed/?paged={page}"]
+section_regex = '^/(?:print/)?\d{4}/\d{2}/\d{2}/([^/]+)/'   # /2026/10/26/politics/... and /print/2026/...
+
+[[site]]
+name = "in.gr"
+enabled = false
+feeds = ["https://www.in.gr/feed/"]
+backfill = ["https://www.in.gr/feed/?paged={page}"]
+section_regex = '^/\d{4}/\d{2}/\d{2}/([^/]+)/'
+
+# Not usable, checked 2026-10-26 (re-check before adding):
+#   kathimerini.gr  robots.txt disallows /feed and blocks AI/data crawlers by name; a team decision, check their terms
+#   avgi.gr         feed works, article pages answer with a Cloudflare bot challenge (403); don't work around it
+#   documentonews.gr  same Cloudflare 403 on articles
+#   902.gr          robots.txt disallows its feeds

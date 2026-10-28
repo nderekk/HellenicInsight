@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoliticalBro · Σήμερα</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --field:#0d1b2a; --panel:#13263a; --rule:#2a3e55; --white:#ffffff; --mute:#b5c0cc; --dim:#8b99a8;
+    --left:#d3302f; --center:#9aa3ad; --right:#1f5fae; --onlight:#0d1b2a;
+    --left-on:#f06a62; --right-on:#6f9fe8; /* lighter spectrum tones for thin marks and text on the dark field (AA) */
+    --pad:clamp(16px,3.4vw,48px);
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--field);color-scheme:dark;scrollbar-color:var(--rule) var(--field)}
+  body{background:var(--field);color:var(--white);font-family:"Roboto Condensed",sans-serif;font-variant-numeric:tabular-nums;line-height:1.35;padding-bottom:56px}
+  ::selection{background:var(--white);color:var(--field)}
+  a{color:inherit;text-underline-offset:4px;text-decoration-thickness:2px}
+  :focus-visible{outline:3px solid var(--white);outline-offset:3px}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+
+  /* broadcast bar */
+  .bar{display:flex;align-items:center;gap:28px;height:64px;padding:0 var(--pad);border-bottom:1px solid var(--rule)}
+  .mark{font-weight:900;font-size:26px;letter-spacing:-.01em;text-transform:uppercase;text-decoration:none}
+  .mark span{color:var(--mute);font-weight:500;font-size:15px;text-transform:none;letter-spacing:0;margin-left:12px}
+  .bar nav{display:flex;gap:24px;margin-left:auto;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em}
+  .bar nav a{text-decoration:none;color:var(--mute);padding:6px 0}
+  .bar nav a[aria-current]{color:var(--white);box-shadow:inset 0 -3px 0 var(--white)}
+  .clock{font-weight:700;font-size:14px;color:var(--mute);white-space:nowrap}
+  .clock b{color:var(--white)}
+  .lang{display:flex;border:1px solid var(--rule)}
+  .lang button{padding:6px 10px;font-weight:700;font-size:14px;color:var(--mute)}
+  .lang button[aria-pressed="true"]{background:var(--white);color:var(--field)}
+
+  /* first viewport */
+  .board{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:clamp(24px,4vw,56px);padding:32px var(--pad) 40px}
+  .lead h1{font-weight:800;font-size:clamp(30px,3.6vw,50px);line-height:1.08;letter-spacing:-.015em;max-width:30ch;text-wrap:balance}
+  .lead h1 a{text-decoration:none}
+  .lead h1 a:hover{text-decoration:underline}
+  .lead .en{font-size:19px;color:var(--mute);margin-top:10px;max-width:60ch}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-weight:500;font-size:15px;color:var(--mute)}
+  .meta b{color:var(--white);font-weight:700}
+  .split{display:flex;height:120px;margin-top:16px;gap:2px}
+  .split div{display:flex;flex-direction:column;justify-content:center;padding:0 18px;font-weight:900;font-size:clamp(56px,6.4vw,92px);line-height:.92;letter-spacing:-.03em;overflow:hidden;white-space:nowrap;
+    flex-basis:0;transition:flex-grow 1.1s var(--ease)}
+  .split small{font-weight:700;font-size:14px;line-height:1.2;letter-spacing:.08em;text-transform:uppercase;margin-top:8px}
+  .split .L{background:var(--left)} .split .C{background:var(--center);color:var(--onlight)} .split .R{background:var(--right)}
+  .split .zero{background:transparent;border:2px dashed var(--mute);color:var(--mute);flex-grow:.5!important}
+  .basis{font-size:13px;color:var(--dim);margin-top:8px}
+  .rows{margin-top:14px;border-top:2px solid var(--white)}
+  .row{display:grid;grid-template-columns:140px minmax(0,1fr) 200px 92px;gap:16px;align-items:center;min-height:40px;padding:6px 0;border-bottom:1px solid var(--rule);font-size:15px}
+  .row .o{font-weight:700}
+  .row .h{color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .h a{text-decoration:none} .row .h a:hover{color:var(--white);text-decoration:underline}
+  .track{position:relative;height:10px;background:var(--panel)}
+  .track::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--dim)}
+  .track i{position:absolute;top:0;bottom:0;transition:width 1.1s var(--ease)}
+  .track u{position:absolute;top:-6px;height:2px;background:var(--white)}
+  .track u::before,.track u::after{content:"";position:absolute;top:-3px;width:2px;height:8px;background:var(--white)}
+  .track u::before{left:0} .track u::after{right:0}
+  .row .v{text-align:right;font-weight:800}
+  .row .v small{font-weight:400;color:var(--mute);margin-left:4px}
+  .next{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;margin-top:16px}
+  .more{font-size:14px;color:var(--mute)}
+  .open{display:inline-block;font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:.06em;background:var(--white);color:var(--field);padding:12px 18px;text-decoration:none}
+  .open:hover{background:var(--mute)}
+
+  aside.blind{background:var(--panel);padding:22px 24px;align-self:start}
+  aside.blind h2{font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.04em}
+  aside.blind p.lede{font-size:15px;color:var(--mute);margin-top:6px}
+  aside.blind ol{list-style:none;margin-top:14px}
+  aside.blind li{border-top:1px solid var(--rule)}
+  aside.blind li button{display:block;width:100%;padding:14px 0}
+  aside.blind li b{display:block;font-weight:700;font-size:17px;line-height:1.25}
+  aside.blind li span{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:14px;color:var(--mute)}
+  .z{font-style:normal;display:inline-grid;place-items:center;min-width:26px;height:22px;padding:0 6px;border:2px dashed currentColor;font-weight:900;font-size:14px}
+  aside.blind li button:hover b{text-decoration:underline}
+
+  /* rest of the day */
+  .day{padding:8px var(--pad) 48px}
+  .day h2{font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.04em;padding-bottom:12px;border-bottom:2px solid var(--white)}
+  .day h2 small{font-weight:500;text-transform:none;letter-spacing:0;color:var(--mute);margin-left:10px;font-size:16px}
+  .ev{display:grid;grid-template-columns:64px minmax(0,1fr) 260px 72px;gap:20px;align-items:center;width:calc(100% + 24px);margin:0 -12px;padding:14px 12px;background:linear-gradient(var(--rule),var(--rule)) 12px 100%/calc(100% - 24px) 1px no-repeat}
+  .ev:hover .t1,.ev[aria-current="true"] .t1{text-decoration:underline}
+  .ev[aria-current="true"]{background-color:var(--panel)}
+  .ev .tm{font-weight:800;font-size:18px}
+  .ev .t1{font-weight:700;font-size:18px;line-height:1.25}
+  .ev .t2{font-size:14px;color:var(--mute);margin-top:3px}
+  .ev .tag{display:inline-flex;align-items:center;gap:6px;margin-left:10px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);vertical-align:2px}
+  .mini{display:flex;height:12px;gap:2px}
+  .mini i{flex-basis:0}
+  .mini .L{background:var(--left-on)} .mini .C{background:var(--center)} .mini .R{background:var(--right-on)}
+  .ev .n{text-align:right;font-weight:800;font-size:18px}
+  .ev .n small{display:block;font-weight:400;font-size:12px;color:var(--mute)}
+  .colophon{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:28px;font-size:14px;color:var(--mute)}
+
+  /* lower-third ticker */
+  .ticker{position:fixed;left:0;right:0;bottom:0;height:52px;background:var(--white);color:var(--field);display:flex;align-items:center;overflow:hidden;z-index:2}
+  .ticker b{flex:none;align-self:stretch;display:flex;align-items:center;background:var(--field);color:var(--white);padding:0 16px;margin-left:var(--pad);font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.08em}
+  .ticker .sample{flex:none;margin-left:16px;padding:4px 8px;border:2px dashed var(--field);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+  .ticker .run{display:flex;gap:48px;padding-left:28px;white-space:nowrap;font-weight:700;font-size:16px;animation:run 60s linear infinite}
+  .ticker:hover .run,.ticker:focus-within .run{animation-play-state:paused}
+  .ticker .run span em{font-style:normal;font-weight:900;margin-right:8px}
+  @keyframes run{to{transform:translateX(-50%)}}
+
+  .still .split div,.still .track i{transition:none} .still .ticker .run{animation:none}
+  @media (prefers-reduced-motion:reduce){
+    .split div,.track i{transition:none}
+    .ticker .run{animation:none}
+  }
+  @media (max-width:900px){
+    .bar{gap:14px;height:auto;min-height:56px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+    .bar nav{order:3;width:100%;margin-left:0;gap:20px;overflow-x:auto}
+    .mark span,.clock .cw{display:none}
+    .clock{margin-left:auto}
+    .board{grid-template-columns:1fr;padding-top:24px}
+    .row{grid-template-columns:110px minmax(0,1fr) 82px;row-gap:6px}
+    .row .h{grid-column:1/-1;grid-row:2;white-space:normal}
+    .row .track{grid-column:2}
+    .split{height:104px}
+    .split div{padding:0 10px}
+    .split small{font-size:12px;letter-spacing:.04em}
+    .ev{grid-template-columns:52px minmax(0,1fr) 44px;row-gap:10px}
+    .ev .mini{grid-column:2/-1;grid-row:2}
+    .ev .tm,.ev .t1,.ev .n{font-size:16px}
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="mark" href="#">PoliticalBro<span data-i18n="date"></span></a>
+  <nav aria-label="Κύρια">
+    <a href="#" aria-current="page" data-i18n="navEvents"></a>
+    <a href="#blindspots" data-i18n="navBlind"></a>
+    <a href="#" data-i18n="navMethod"></a>
+  </nav>
+  <span class="clock"><span class="cw" data-i18n="updated"></span> <b>14:20</b></span>
+  <div class="lang" role="group" aria-label="Γλώσσα / Language">
+    <button type="button" data-lang="el" aria-pressed="true">ΕΛ</button>
+    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+
+<main>
+  <section class="board" aria-live="polite">
+    <article class="lead" id="lead"></article>
+    <aside class="blind" id="blindspots" aria-labelledby="bh">
+      <h2 id="bh" data-i18n="blindTitle"></h2>
+      <p class="lede" data-i18n="blindLede"></p>
+      <ol id="blindlist"></ol>
+    </aside>
+  </section>
+
+  <section class="day" aria-labelledby="dh">
+    <h2 id="dh"><span data-i18n="dayTitle"></span> <small id="daycount"></small></h2>
+    <div id="daylist"></div>
+    <p class="colophon"><span data-i18n="counted"></span><span data-i18n="synthetic"></span></p>
+  </section>
+</main>
+
+<div class="ticker" tabindex="0" aria-label="Εισερχόμενα">
+  <b data-i18n="incoming"></b>
+  <span class="sample" data-i18n="sampleShort"></span>
+  <div class="run" id="ticker"></div>
+</div>
+
+<script>
+/* Synthetic sample data: illustrative events and headlines, not real coverage. */
+const OUTLETS = ["efsyn.gr","thepressproject.gr","in.gr","tanea.gr","ertnews.gr","naftemporiki.gr","iefimerida.gr","protothema.gr"];
+const EVENTS = [
+  {id:"opekepe",time:"08:12",el:"Βουλή: ψηφίστηκε η εξεταστική για τον ΟΠΕΚΕΠΕ με 158 ψήφους",en:"Parliament approves inquiry committee into OPEKEPE subsidies",
+   arts:[["efsyn.gr",.18,.06,"«Η εξεταστική ανοίγει τον φάκελο που η κυβέρνηση ήθελε κλειστό»"],["thepressproject.gr",.22,.08,"Ποιοι πήραν τις επιδοτήσεις: τα ονόματα πίσω από τον ΟΠΕΚΕΠΕ"],["efsyn.gr",.29,.09,"Οι αγρότες που περιμένουν ακόμη τις πληρωμές τους"],["in.gr",.36,.10,"Με 158 ψήφους η σύσταση εξεταστικής επιτροπής"],["tanea.gr",.40,.11,"Τι θα εξετάσει η επιτροπή και ποιοι θα καταθέσουν"],["ertnews.gr",.49,.05,"Εγκρίθηκε από την Ολομέλεια η εξεταστική επιτροπή"],["naftemporiki.gr",.55,.07,"Τι σημαίνει η εξεταστική για τις αγροτικές πληρωμές"],["iefimerida.gr",.68,.09,"Κυβέρνηση: «Δεν έχουμε τίποτα να κρύψουμε»"],["protothema.gr",.74,.07,"Η αντιπολίτευση στήνει σκηνικό πόλωσης με την εξεταστική"],["iefimerida.gr",.79,.08,"Μητσοτάκης: διαφάνεια μέχρι τέλους"],["protothema.gr",.86,.10,"Τα λάθη της προηγούμενης διοίκησης του Οργανισμού"]]},
+  {id:"gsee",time:"09:40",el:"Απεργία ΓΣΕΕ: χωρίς ΜΜΜ η Αθήνα την Πέμπτη",en:"GSEE strike: no public transport in Athens on Thursday",
+   arts:[["efsyn.gr",.12,.05,"Όλοι στους δρόμους: γιατί απεργούν οι εργαζόμενοι"],["thepressproject.gr",.15,.07,"Η απεργία που η κυβέρνηση δεν θέλει να δει"],["in.gr",.33,.09,"Πώς θα κινηθούν τα ΜΜΜ την Πέμπτη"],["tanea.gr",.38,.10,"Στάσεις εργασίας και συλλαλητήρια σε όλη τη χώρα"],["ertnews.gr",.47,.04,"Χωρίς μετρό, ηλεκτρικό και τραμ την Πέμπτη"],["naftemporiki.gr",.53,.06,"Το κόστος της απεργίας για τις επιχειρήσεις"],["ertnews.gr",.50,.05,"Ποια δρομολόγια λεωφορείων θα εκτελεστούν"]]},
+  {id:"asylum",time:"11:05",el:"Μεταναστευτικό: νέα ρύθμιση για τις αιτήσεις ασύλου στην Κρήτη",en:"Migration: new rules for asylum applications in Crete",
+   arts:[["efsyn.gr",.16,.07,"Οργανώσεις: η ρύθμιση παραβιάζει το διεθνές δίκαιο"],["in.gr",.35,.10,"Τι αλλάζει στις αιτήσεις ασύλου"],["ertnews.gr",.52,.05,"Η νέα διαδικασία για τις αιτήσεις στην Κρήτη"],["iefimerida.gr",.66,.08,"Αυστηρά μέτρα για τις ροές νότια της Κρήτης"],["protothema.gr",.75,.09,"Κρήτη: οι κάτοικοι ζητούν λύση τώρα"],["iefimerida.gr",.71,.08,"Υπουργός: η Ελλάδα φυλάει τα σύνορα της Ευρώπης"],["protothema.gr",.90,.11,"«Πύλη εισόδου» η Κρήτη: ο χάρτης των ροών"],["naftemporiki.gr",.58,.06,"Τι προβλέπει το σχέδιο για τα κέντρα υποδοχής"],["thepressproject.gr",.20,.08,"Στον Νότο της Κρήτης, οι άνθρωποι πίσω από τους αριθμούς"]]},
+  {id:"oil",time:"12:30",el:"Ακρίβεια: σε ιστορικό υψηλό η τιμή του ελαιολάδου στα ράφια",en:"Cost of living: olive oil shelf prices at a record high",
+   arts:[["ertnews.gr",.48,.05,"Πόσο κοστίζει σήμερα το λίτρο ελαιόλαδο"],["naftemporiki.gr",.56,.06,"Ελαιόλαδο: οι εξαγωγές πιέζουν τις τιμές"],["iefimerida.gr",.67,.09,"Μέτρα στήριξης για τους καταναλωτές εξετάζει η κυβέρνηση"],["protothema.gr",.72,.08,"Τα κυκλώματα που ανεβάζουν τις τιμές"],["iefimerida.gr",.81,.09,"Η αγορά σταθεροποιείται, λέει το υπουργείο"]]},
+  {id:"energy",time:"13:55",el:"Δήλωση πρωθυπουργού για το ενεργειακό νομοσχέδιο",en:"Prime Minister's statement on the energy bill",
+   arts:[["efsyn.gr",.14,.06,"Νομοσχέδιο για τους λίγους, λογαριασμός για τους πολλούς"],["thepressproject.gr",.24,.08,"Ποιος κερδίζει από το νέο ενεργειακό πλαίσιο"],["tanea.gr",.41,.10,"Τι αλλάζει στους λογαριασμούς ρεύματος"],["ertnews.gr",.50,.04,"Ο πρωθυπουργός για το ενεργειακό νομοσχέδιο"],["naftemporiki.gr",.60,.07,"Οι αγορές υποδέχονται θετικά το νομοσχέδιο"],["iefimerida.gr",.77,.08,"Μητσοτάκης: φθηνότερο ρεύμα από το 2027"],["protothema.gr",.84,.09,"Η αντιπολίτευση χωρίς πρόταση για την ενέργεια"]]},
+  {id:"varnavas",time:"14:12",el:"Πυρκαγιά στη Βαρνάβα: ξεκινούν οι αποζημιώσεις για τους πληγέντες",en:"Varnavas fire: compensation payments begin",
+   arts:[["ertnews.gr",.49,.04,"Ανοίγει η πλατφόρμα για τις αποζημιώσεις"],["iefimerida.gr",.70,.08,"Ταχύτατη η αποζημίωση των πληγέντων"],["protothema.gr",.78,.09,"Οι πρώτες πληρωμές φτάνουν στη Βαρνάβα"],["naftemporiki.gr",.57,.06,"Το ύψος των ενισχύσεων ανά νοικοκυριό"]]},
+  {id:"bank",time:"14:18",el:"Χρηματιστήριο: άνοδος στις τράπεζες μετά τα αποτελέσματα τριμήνου",en:"Athens Stock Exchange: banks rise after quarterly results",
+   arts:[["naftemporiki.gr",.56,.05,"Ράλι στις τράπεζες μετά τα αποτελέσματα"],["ertnews.gr",.50,.05,"Κέρδη στο Χρηματιστήριο Αθηνών"]]}
+];
+const T = {
+  el:{date:"Τρίτη 28 Οκτωβρίου",navEvents:"Γεγονότα",navBlind:"Τυφλά σημεία",navMethod:"Μεθοδολογία",updated:"Ενημέρωση",
+      blindTitle:"Τυφλά σημεία",blindLede:"Γεγονότα που μια πλευρά δεν κάλυψε καθόλου.",dayTitle:"Η μέρα μέχρι τώρα",incoming:"Εισερχόμενα",sampleShort:"Δείγμα δεδομένων",
+      counted:"Καταμετρήθηκε 14:20 από 8 πηγές",synthetic:"Δείγμα δεδομένων: όχι πραγματική κάλυψη",
+      L:"Αριστερά",C:"Κέντρο",R:"Δεξιά",articles:n=>n===1?"1 άρθρο":`${n} άρθρα`,outlets:n=>n===1?"1 πηγή":`${n} πηγές`,
+      basis:"Οι αριθμοί μετρούν άρθρα, όχι ψήφους. Θέση ανά άρθρο, με αβεβαιότητα (±).",
+      none:s=>`Καμία κάλυψη από ${s==="L"?"τα Αριστερά":s==="R"?"τα Δεξιά":"το Κέντρο"}`,blindTag:"Τυφλό σημείο",
+      open:"Δείτε το γεγονός",more:n=>`+${n} ακόμη άρθρα στη σελίδα του γεγονότος`,first:"Πρώτη αναφορά"},
+  en:{date:"Tuesday 28 October",navEvents:"Events",navBlind:"Blindspots",navMethod:"Methodology",updated:"Updated",
+      blindTitle:"Blindspots",blindLede:"Events one side of the spectrum didn't cover at all.",dayTitle:"The day so far",incoming:"Incoming",sampleShort:"Sample data",
+      counted:"Counted 14:20 from 8 outlets",synthetic:"Sample data: not real coverage",
+      L:"Left",C:"Center",R:"Right",articles:n=>n===1?"1 article":`${n} articles`,outlets:n=>n===1?"1 outlet":`${n} outlets`,
+      basis:"Figures count articles, not votes. Each article is placed on its own, with uncertainty (±).",
+      none:s=>`No coverage from the ${s==="L"?"Left":s==="R"?"Right":"Center"}`,blindTag:"Blindspot",
+      open:"Open the event",more:n=>`+${n} more articles on the event page`,first:"First reported"}
+};
+const side = s => s<=.40 ? "L" : s<=.60 ? "C" : "R";
+const count = e => { const c={L:0,C:0,R:0}; e.arts.forEach(a=>c[side(a[1])]++); return c; };
+const outlets = e => new Set(e.arts.map(a=>a[0])).size;
+const blind = e => { const c=count(e); return e.arts.length>=4 ? ["L","R"].filter(s=>c[s]===0) : []; };
+const esc = s => s.replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches || new URLSearchParams(location.search).has("still");
+if(reduce) document.documentElement.classList.add("still");
+let lang = "el", current = EVENTS[0].id;
+
+function renderLead(){
+  const t=T[lang], e=EVENTS.find(x=>x.id===current), c=count(e);
+  const head = lang==="el" ? e.el : e.en, sub = lang==="el" ? e.en : e.el;
+  const best = new Map(); e.arts.forEach(a=>{ if(!best.has(a[0])) best.set(a[0],a); });
+  const rows = [...best.values()].sort((a,b)=>a[1]-b[1]);
+  const seg = s => c[s]===0
+    ? `<div class="zero" style="color:var(--${s==="L"?"left-on":"right-on"});border-color:currentColor" title="${esc(t.none(s))}">0<small>${t[s]}</small></div>`
+    : `<div class="${s}" style="flex-grow:${reduce?c[s]:0}" data-g="${c[s]}">${c[s]}<small>${t[s]}</small></div>`;
+  document.getElementById("lead").innerHTML = `
+    <h1><a href="#" lang="${lang}">${esc(head)}</a></h1>
+    <p class="en" lang="${lang==="el"?"en":"el"}">${esc(sub)}</p>
+    <p class="meta"><span>${t.first} <b>${e.time}</b></span><span><b>${t.articles(e.arts.length)}</b> · ${t.outlets(outlets(e))}</span></p>
+    <div class="split" role="img" aria-label="${t.L} ${c.L}, ${t.C} ${c.C}, ${t.R} ${c.R}">${seg("L")}${seg("C")}${seg("R")}</div>
+    <p class="basis">${t.basis}</p>
+    <div class="rows">${rows.map(a=>`
+      <div class="row"><span class="o">${a[0].replace(/\.gr$/,"")}</span>
+        <span class="h"><a href="#" lang="el">${esc(a[3])}</a></span>
+        <span class="track" aria-hidden="true"><i style="${a[1]<.5?"right":"left"}:50%;width:${reduce?Math.abs(a[1]-.5)*100:0}%;background:var(--${{L:"left-on",C:"center",R:"right-on"}[side(a[1])]})" data-w="${Math.abs(a[1]-.5)*100}"></i><u style="left:${(a[1]-a[2])*100}%;right:${100-(a[1]+a[2])*100}%"></u></span>
+        <span class="v">${a[1].toFixed(2)}<small>±${a[2].toFixed(2).slice(1)}</small></span></div>`).join("")}
+    </div>
+    <div class="next"><a class="open" href="#">${t.open}</a>${e.arts.length>rows.length?`<p class="more">${t.more(e.arts.length-rows.length)}</p>`:""}</div>`;
+  if(!reduce) requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll(".split [data-g]").forEach(d=>d.style.flexGrow=d.dataset.g);
+    document.querySelectorAll(".track i").forEach(i=>i.style.width=i.dataset.w+"%");
+  }));
+}
+function renderLists(){
+  const t=T[lang];
+  document.getElementById("blindlist").innerHTML = EVENTS.filter(e=>blind(e).length).map(e=>`
+    <li><button type="button" data-ev="${e.id}"><b>${esc(lang==="el"?e.el:e.en)}</b>
+      <span><i class="z" style="color:var(--${blind(e)[0]==="L"?"left-on":"right-on"})" aria-hidden="true">0</i>${t.none(blind(e)[0])}</span></button></li>`).join("");
+  document.getElementById("daycount").textContent = (lang==="el"?`${EVENTS.length} γεγονότα`:`${EVENTS.length} events`) + " · " + t.articles(EVENTS.reduce((n,e)=>n+e.arts.length,0));
+  document.getElementById("daylist").innerHTML = EVENTS.slice().reverse().map(e=>{ const c=count(e), b=blind(e);
+    return `<button type="button" class="ev" data-ev="${e.id}" aria-current="${e.id===current}">
+      <span class="tm">${e.time}</span>
+      <span><span class="t1">${esc(lang==="el"?e.el:e.en)}</span>${b.length?`<span class="tag" style="color:var(--${b[0]==="L"?"left-on":"right-on"})"><i class="z" aria-hidden="true">0</i>${t.blindTag} · ${t[b[0]]}</span>`:""}
+        <span class="t2" style="display:block">${t.outlets(outlets(e))}</span></span>
+      <span class="mini" role="img" aria-label="${t.L} ${c.L}, ${t.C} ${c.C}, ${t.R} ${c.R}"><i class="L" style="flex-grow:${c.L}"></i><i class="C" style="flex-grow:${c.C}"></i><i class="R" style="flex-grow:${c.R}"></i></span>
+      <span class="n">${e.arts.length}<small>${lang==="el"?"άρθρα":"articles"}</small></span></button>`; }).join("");
+  const items = EVENTS.slice(-3).map(e=>`<span><em>${e.time}</em>${esc(lang==="el"?e.el:e.en)} · ${t.articles(e.arts.length)}</span>`).join("");
+  document.getElementById("ticker").innerHTML = items + `<span aria-hidden="true">${items}</span>`;
+}
+function renderChrome(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(n=>n.textContent=T[lang][n.dataset.i18n]);
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.lang===lang));
+}
+function render(){ renderChrome(); renderLead(); renderLists(); }
+document.addEventListener("click", ev=>{
+  const l = ev.target.closest("[data-lang]"); if(l){ lang=l.dataset.lang; render(); return; }
+  const e = ev.target.closest("[data-ev]"); if(e){ current=e.dataset.ev; renderLead(); renderLists(); window.scrollTo({top:0,behavior:reduce?"auto":"smooth"}); }
+});
+render();
+</script>
+</body>
+</html>

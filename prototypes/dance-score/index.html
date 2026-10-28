@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoliticalBro · Dance Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#ffffff;--ink:#0a0a0a;--mute:#4d4d4d;--beat:#ececec;--left:#d3302f;--right:#1f5fae;
+    --blk:56px;--center:min(440px,44%);--pad:clamp(12px,3vw,40px);--ease:cubic-bezier(.16,1,.3,1)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--paper);scrollbar-color:var(--ink) var(--paper)}
+  body{background:var(--paper);color:var(--ink);font:400 16px/1.45 "Literata",serif}
+  ::selection{background:var(--ink);color:var(--paper)}
+  :focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  a{color:inherit} button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  .mono{font-family:"Roboto Mono",monospace;font-variant-numeric:tabular-nums}
+
+  header{display:flex;align-items:flex-end;gap:28px;padding:22px var(--pad) 18px;border-bottom:3px solid var(--ink)}
+  .name{font:700 26px/1 "Literata";text-decoration:none}
+  .name small{display:block;font:400 13px "Roboto Mono";margin-top:6px;color:var(--mute)}
+  nav{display:flex;gap:24px;margin-left:auto;font:500 13px "Roboto Mono";text-transform:uppercase;letter-spacing:.06em}
+  nav a{text-decoration:none;padding:4px 0} nav a[aria-current]{border-bottom:2px solid var(--ink)}
+  .lang{display:flex;border:1.5px solid var(--ink)}
+  .lang button{padding:4px 9px;font:500 13px "Roboto Mono"}
+  .lang button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+  .key{display:flex;flex-wrap:wrap;gap:8px 28px;padding:12px var(--pad);font:400 12px "Roboto Mono";color:var(--mute);border-bottom:1px solid var(--ink)}
+  .key span{display:inline-flex;align-items:center;gap:8px}
+  .key i{display:inline-block;width:30px;height:12px}
+
+  .score{position:relative;padding:0 var(--pad) 40px}
+  .cols,.m{display:grid;grid-template-columns:72px 1fr var(--center) 1fr 24px}
+  .cols{position:sticky;top:0;z-index:2;background:var(--paper);font:500 12px "Roboto Mono";letter-spacing:.08em;text-transform:uppercase}
+  .cols span{padding:12px 0 10px}
+  .cols .l{text-align:right;padding-right:14px;border-bottom:4px solid var(--left)}
+  .cols .c{text-align:center;border-bottom:4px solid var(--ink)}
+  .cols .r{padding-left:14px;border-bottom:4px solid var(--right)}
+  .cols b{font-weight:700;font-size:14px;margin:0 6px}
+  .staff{position:absolute;top:0;bottom:0;left:calc(var(--pad) + 72px);right:calc(var(--pad) + 24px);pointer-events:none}
+  .staff::before,.staff::after,.staff i{content:"";position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
+  .staff::before{left:calc(50% - var(--center)/2)} .staff::after{left:calc(50% + var(--center)/2 - 2px)} .staff i{left:calc(50% - 1px);width:3px}
+  .now{position:relative;display:grid;grid-template-columns:72px 1fr;align-items:center;height:44px;background:var(--beat);margin:0 calc(-1*var(--pad));padding:0 var(--pad);font:500 13px "Roboto Mono"}
+  .now b{font-weight:700}
+
+  .m{position:relative;min-height:150px;border-top:1px solid var(--ink);animation:rise .9s var(--ease) both;animation-delay:calc(var(--i)*70ms)}
+  @keyframes rise{from{transform:translateY(24px);opacity:0}}
+  .m .tm{padding-top:18px;font:700 15px "Roboto Mono"}
+  .m .tm small{display:block;font:400 11px "Roboto Mono";color:var(--mute);margin-top:4px}
+  .side{display:flex;flex-direction:column;justify-content:center;gap:5px;padding:18px 0}
+  .blk{display:block;width:var(--blk);height:14px;flex:none;transition:transform .2s var(--ease)}
+  .side.l .blk{margin-left:auto;margin-right:calc(var(--d) * (100% - var(--blk) - 8px) + 8px);clip-path:polygon(12px 0,100% 0,100% 100%,12px 100%,0 50%)}
+  .side.r .blk{margin-left:calc(var(--d) * (100% - var(--blk) - 8px) + 8px);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%)}
+  .solid{background:var(--ink)}
+  .hatch{background:repeating-linear-gradient(45deg,var(--ink) 0 2px,transparent 2px 5px);outline:0}
+  .dots{background:radial-gradient(circle,var(--ink) 1.4px,transparent 1.6px) 0 0/5px 5px}
+  .blk:hover,.blk:focus-visible{transform:scaleY(1.6)}
+  .hold{align-self:center;display:flex;flex-direction:column;align-items:center;gap:4px;font:500 11px "Roboto Mono";color:var(--mute);text-align:center}
+  .hold i{width:22px;height:22px;border:3px solid var(--ink);border-radius:50%}
+  .side.l .hold{margin-left:auto;margin-right:24px} .side.r .hold{margin-left:24px}
+  .lab{position:relative;z-index:1;background:var(--paper);margin:14px 0;padding:14px 18px;border:2px solid var(--ink);align-self:center;text-align:left}
+  .lab h2{font:600 19px/1.3 "Literata";text-wrap:balance}
+  .lab h2 a{text-decoration:none} .lab h2 a:hover{text-decoration:underline}
+  .lab p{font-size:14px;color:var(--mute);margin-top:4px}
+  .lab .ct{display:flex;justify-content:space-between;margin-top:10px;font:500 12px "Roboto Mono"}
+  .lab .ct b{font-weight:700}
+  .cap{grid-column:2/5;min-height:0;font:400 13px "Roboto Mono";color:var(--mute);text-align:center;padding:0 0 10px}
+  .cap:empty{display:none}
+  .foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:16px var(--pad) 32px;border-top:3px solid var(--ink);font:400 13px "Roboto Mono"}
+  .foot b{border:1.5px dashed var(--ink);padding:3px 7px;font-weight:500}
+
+  @media (prefers-reduced-motion:reduce){ .m{animation:none} .blk{transition:none} }
+  .still .m{animation:none}
+  @media (max-width:760px){
+    :root{--blk:26px;--center:58%}
+    header{flex-wrap:wrap;align-items:center}
+    nav{order:3;width:100%;margin-left:0;gap:18px;overflow-x:auto}
+    .lang{margin-left:auto}
+    .cols,.m{grid-template-columns:0 1fr var(--center) 1fr 0}
+    .staff{left:var(--pad);right:var(--pad)}
+    .cols span:first-child,.cols span:last-child,.m .tm{overflow:hidden}
+    .m .tm{visibility:hidden}
+    .lab{padding:10px 12px} .lab h2{font-size:16px}
+    .side.l .blk{clip-path:polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%)}
+    .side.r .blk{clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%)}
+    .hold span{display:none}
+    .side.l .hold{margin-right:8px} .side.r .hold{margin-left:8px}
+    .cols .l,.cols .r{padding-left:4px;padding-right:4px}
+    .cols b{display:block;margin:2px 0 0}
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="name" href="#">PoliticalBro<small id="subname"></small></a>
+  <nav aria-label="Κύρια"><a href="#" aria-current="page" data-i="events"></a><a href="#" data-i="blind"></a><a href="#" data-i="method"></a></nav>
+  <div class="lang" role="group" aria-label="Γλώσσα / Language"><button type="button" data-lang="el">ΕΛ</button><button type="button" data-lang="en">EN</button></div>
+</header>
+<div class="key" id="key"></div>
+<main class="score">
+  <div class="staff" aria-hidden="true"><i></i></div>
+  <div class="cols" id="cols"></div>
+  <div class="now" id="now"></div>
+  <div id="measures"></div>
+</main>
+<p class="foot"><span id="counted"></span><b id="sample"></b></p>
+<script src="../shared/data.js"></script>
+<script>
+const {EVENTS,T,side,count,outlets,blind,esc,short,head,sub,initialLang} = PB;
+let lang = initialLang;
+const other = () => lang==="el" ? "en" : "el";
+const fill = u => u<=.06 ? "solid" : u<=.09 ? "hatch" : "dots";
+function measure(e,i){
+  const t=T[lang], c=count(e), b=blind(e);
+  const arts = e.arts.slice().sort((x,y)=>Math.abs(y[1]-.5)-Math.abs(x[1]-.5));
+  const blk = a => `<span class="blk ${fill(a[2])}" tabindex="0" style="--d:${Math.min(1,Math.abs(a[1]-.5)/.5).toFixed(3)}" data-cap="${esc(short(a[0]))} · ${a[1].toFixed(2)} ±${a[2].toFixed(2).slice(1)} · ${esc(a[3])}" aria-label="${esc(short(a[0]))} ${a[1].toFixed(2)}: ${esc(a[3])}"></span>`;
+  const col = s => { const xs = arts.filter(a => s==="l" ? a[1]<.5 : a[1]>=.5);
+    const silent = b.includes(s==="l"?"L":"R");
+    return `<div class="side ${s}">${silent ? `<span class="hold"><i aria-hidden="true"></i><span>${esc(t.none(s==="l"?"L":"R"))}</span></span>` : ""}${xs.map(blk).join("")}</div>`; };
+  return `<article class="m" style="--i:${i}" aria-labelledby="h-${e.id}">
+    <p class="tm">${e.time}<small>${t.topics[e.topic]}</small></p>
+    ${col("l")}
+    <div class="lab"><h2 id="h-${e.id}"><a href="#">${esc(head(e,lang))}</a></h2><p lang="${other()}">${esc(sub(e,lang))}</p>
+      <p class="ct"><span>${t.Ls} <b>${c.L}</b></span><span>${t.Cs} <b>${c.C}</b></span><span>${t.Rs} <b>${c.R}</b></span></p></div>
+    ${col("r")}<span></span>
+    <p class="cap" aria-live="polite"></p>
+  </article>`;
+}
+function render(){
+  const t=T[lang];
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i]").forEach(n=>n.textContent=t[n.dataset.i]);
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang));
+  document.getElementById("subname").textContent = (lang==="el"?"Η παρτιτούρα της ημέρας · ":"The day's score · ") + t.date;
+  const tot = EVENTS.reduce((a,e)=>{const c=count(e); a.L+=c.L; a.C+=c.C; a.R+=c.R; return a;},{L:0,C:0,R:0});
+  document.getElementById("cols").innerHTML = `<span></span><span class="l">← ${t.L}<b class="mono">${tot.L}</b></span><span class="c">${t.C}<b class="mono">${tot.C}</b></span><span class="r">${t.R}<b class="mono">${tot.R}</b> →</span><span></span>`;
+  document.getElementById("key").innerHTML = lang==="el"
+    ? `<span>Κάθε σύμβολο είναι ένα άρθρο· όσο πιο μακριά από τον άξονα, τόσο πιο έντονη η κλίση.</span><span><i class="solid"></i>σίγουρη θέση</span><span><i class="hatch"></i>μέτρια</span><span><i class="dots"></i>αβέβαιη</span><span><i style="width:16px;height:16px;border:3px solid #0a0a0a;border-radius:50%"></i>καμία κάλυψη</span>`
+    : `<span>Each symbol is one article; the farther from the axis, the stronger its lean.</span><span><i class="solid"></i>confident</span><span><i class="hatch"></i>moderate</span><span><i class="dots"></i>uncertain</span><span><i style="width:16px;height:16px;border:3px solid #0a0a0a;border-radius:50%"></i>no coverage</span>`;
+  document.getElementById("now").innerHTML = `<b>14:20</b><span>${lang==="el"?"τώρα · τα νεότερα πάνω":"now · newest on top"}</span>`;
+  document.getElementById("measures").innerHTML = EVENTS.slice().reverse().map(measure).join("");
+  document.getElementById("counted").textContent = t.counted + " · " + t.basis;
+  document.getElementById("sample").textContent = t.sample;
+}
+const caption = el => { const m=el.closest(".m"); if(m) m.querySelector(".cap").textContent = el.dataset.cap || ""; };
+document.addEventListener("mouseover", ev=>{ const b=ev.target.closest(".blk"); if(b) caption(b); });
+document.addEventListener("focusin", ev=>{ const b=ev.target.closest(".blk"); if(b) caption(b); });
+document.addEventListener("click", ev=>{ const l=ev.target.closest("[data-lang]"); if(l){ lang=l.dataset.lang; render(); } });
+render();
+</script>
+</body>
+</html>

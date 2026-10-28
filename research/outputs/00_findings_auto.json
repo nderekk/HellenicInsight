@@ -1,0 +1,175 @@
+{
+  "E1_outlet_recognition": {
+    "raw text": {
+      "accuracy": 0.941,
+      "macro_f1": 0.695,
+      "f1 efsyn.gr": 0.946,
+      "f1 iefimerida.gr": 0.189,
+      "f1 protothema.gr": 0.952,
+      "accuracy efsyn-vs-protothema": 0.956
+    },
+    "masked text": {
+      "accuracy": 0.911,
+      "macro_f1": 0.652,
+      "f1 efsyn.gr": 0.917,
+      "f1 iefimerida.gr": 0.118,
+      "f1 protothema.gr": 0.92,
+      "accuracy efsyn-vs-protothema": 0.926
+    },
+    "title only": {
+      "accuracy": 0.851,
+      "macro_f1": 0.6,
+      "f1 efsyn.gr": 0.852,
+      "f1 iefimerida.gr": 0.078,
+      "f1 protothema.gr": 0.869,
+      "accuracy efsyn-vs-protothema": 0.865
+    }
+  },
+  "E1c_politics_only": {
+    "n_per_outlet": 136,
+    "text_accuracy": 0.769,
+    "title_accuracy": 0.687
+  },
+  "E2_label_distribution": {
+    "per_outlet": {
+      "efsyn.gr": {
+        "n": 1443,
+        "mean": 0.355,
+        "std": 0.154,
+        "p10": 0.19,
+        "p25": 0.28,
+        "median": 0.28,
+        "p75": 0.5,
+        "p90": 0.51,
+        "share_eq_050": 0.175,
+        "share_le_030": 0.556,
+        "share_ge_070": 0.035
+      },
+      "iefimerida.gr": {
+        "n": 119,
+        "mean": 0.496,
+        "std": 0.064,
+        "p10": 0.486,
+        "p25": 0.5,
+        "median": 0.5,
+        "p75": 0.5,
+        "p90": 0.5,
+        "share_eq_050": 0.84,
+        "share_le_030": 0.042,
+        "share_ge_070": 0.025
+      },
+      "protothema.gr": {
+        "n": 1438,
+        "mean": 0.512,
+        "std": 0.09,
+        "p10": 0.5,
+        "p25": 0.5,
+        "median": 0.5,
+        "p75": 0.5,
+        "p90": 0.62,
+        "share_eq_050": 0.728,
+        "share_le_030": 0.045,
+        "share_ge_070": 0.066
+      }
+    },
+    "overall": {
+      "n": 3000,
+      "share_exactly_0.50": 0.467,
+      "share_ge_0.70": 0.05,
+      "share_le_0.30": 0.291,
+      "n_distinct_values": 57,
+      "share_multiple_of_0.05": 0.584,
+      "share_multiple_of_0.10": 0.551
+    },
+    "r2": {
+      "outlet": 0.284,
+      "outlet + section": 0.293
+    }
+  },
+  "E3_generalisation": {
+    "table": [
+      {
+        "split": "held-out efsyn+protothema",
+        "model": "TF-IDF ridge (rung 0)",
+        "spearman": 0.698,
+        "MAE": 0.079,
+        "within efsyn.gr": 0.651,
+        "within protothema.gr": 0.258
+      },
+      {
+        "split": "held-out efsyn+protothema",
+        "model": "outlet mean (pure outlet detector)",
+        "spearman": 0.567,
+        "MAE": 0.089,
+        "within efsyn.gr": 0.0,
+        "within protothema.gr": 0.0
+      },
+      {
+        "split": "held-out efsyn+protothema",
+        "model": "global mean",
+        "spearman": null,
+        "MAE": 0.123,
+        "within efsyn.gr": 0.0,
+        "within protothema.gr": 0.0
+      },
+      {
+        "split": "held-out efsyn+protothema",
+        "model": "constant 0.5",
+        "spearman": null,
+        "MAE": 0.11,
+        "within efsyn.gr": 0.0,
+        "within protothema.gr": 0.0
+      },
+      {
+        "split": "unseen: iefimerida",
+        "model": "TF-IDF ridge (rung 0)",
+        "spearman": 0.218,
+        "MAE": 0.057,
+        "within efsyn.gr": null,
+        "within protothema.gr": null
+      },
+      {
+        "split": "unseen: iefimerida",
+        "model": "outlet mean (pure outlet detector)",
+        "spearman": null,
+        "MAE": 0.076,
+        "within efsyn.gr": null,
+        "within protothema.gr": null
+      },
+      {
+        "split": "unseen: iefimerida",
+        "model": "global mean",
+        "spearman": null,
+        "MAE": 0.076,
+        "within efsyn.gr": null,
+        "within protothema.gr": null
+      },
+      {
+        "split": "unseen: iefimerida",
+        "model": "constant 0.5",
+        "spearman": null,
+        "MAE": 0.023,
+        "within efsyn.gr": null,
+        "within protothema.gr": null
+      }
+    ],
+    "outlet_separation": {
+      "labels separate outlets (AUC)": 0.811,
+      "model predictions separate outlets (AUC)": 0.861
+    },
+    "ridge_alpha": 0.1
+  },
+  "E5_llm_agreement": {
+    "n": 20,
+    "pearson_r": 0.785,
+    "spearman_rho": 0.775,
+    "spearman_95ci": [
+      0.473,
+      0.924
+    ],
+    "mean_abs_diff": 0.077,
+    "share_diff_ge_0.2": 0.05,
+    "krippendorff_alpha_interval": 0.772,
+    "mean_claude_minus_gemini": -0.026
+  }
+}

@@ -1,0 +1,24 @@
+hellenicInsight (subject to change to PoliticalBro)
+
+FEATURES
+Greek news aggregator, starting with n=5 core sites.
+We scrape these n sites at regular intervals, and we identify events, and we aggregate coverage of the same event from different sources. HOW
+Then we feed said coverages to a judge, that classifies each one a scale from 0-1 (far-left to far-right).
+
+The front page will display these multi-source events and clicking each event reveals a page containing the sources (having different approaches/biases) that cover it.
+An objective summary of each event will be given by the app, and then the reader would choose where they would like to continue reading.
+“How would you classify this article” possible option for croudsourcing and eval of our models
+
+DATASET CURATION
+
+Approach 1 (current - human factor - most favorable)
+Manual curation of a statistically important sample of articles by humans
+We generate synthetic labels from m≥2 frontier models for a random representative subset or real articles from multiple sources (we wanna see if the oracle models produce similar/close-to-similar scores for the same articles).
+At the same time we also compare to our human curated samples to the oracle ones.
+Assuming margin of error is small enough, we have a satisfactory way of labeling our dataset
+
+Approach 2 (placeholder)
+Model Selection
+We must validate greek capability, small models could possibly need RAG as well
+JEV (i think with the latest update its also multimodal which could prove useful in the future)
+BERT-like models (Kiefer stuff (https://huggingface.co/KIEFERSA/collections)
