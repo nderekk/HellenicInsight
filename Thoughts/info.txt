@@ -21,5 +21,4 @@ Approach 2 (placeholder)
 Model Selection
 We must validate greek capability, small models could possibly need RAG as well
 JEV (i think with the latest update its also multimodal which could prove useful in the future)
-BERT-like models (
-Kiefer stuff (https://huggingface.co/KIEFERSA/collections)
+BERT-like models (Kiefer stuff (https://huggingface.co/KIEFERSA/collections)
